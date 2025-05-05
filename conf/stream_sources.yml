@@ -1,0 +1,12 @@
+'0':
+  source_id: 0
+  source_type: RTSP
+  source_name: android-wifi
+  enable_recording: true
+  connection_params:
+    address: 192.168.81.98:8080
+    username: admin
+    password: 5555
+    channel: /h264_ulaw.sdp
+
+

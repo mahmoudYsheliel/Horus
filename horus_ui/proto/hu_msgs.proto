@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+
+// monitor msgs
+enum LogLevel {
+    DEBUG = 0;
+    INFO = 1;
+    WARNING = 2;
+    ERROR = 3;
+    CRITICAL = 4;
+}
+
+message LogMsg {
+    uint64 timestamp = 1;
+    LogLevel log_level = 2;
+    string src = 3;
+    string msg = 4;
+}
+
+message LogMsgList {
+    repeated LogMsg logs = 1;
+}
+
+enum ServiceStatus {
+    OFFLINE = 0;
+    ONLINE = 1;
+}
+
+message ServicesStatusMap {
+    map<string, ServiceStatus> map = 1;
+}
+
+
+message Filter {
+   string filter = 1;
+   string input_src = 2;
+   string output_channel = 3;
+   bool enable_recording = 4;
+   map<string,float>  filter_params= 5; 
+}
+message Filters {
+    map<string,Filter> filters = 1;
+}
+
+
+message ConnectionParams {
+   string address =1;
+   string username =2;
+   string password =3;
+   string channel =4;
+}
+message StreamSource {
+   string source_id = 1;
+   string source_type = 2 ;
+   string source_name = 3;
+   bool enable_recording = 4;
+   ConnectionParams connection_params = 5;
+}
+
+message StreamSources {
+    map<string,StreamSource> stream_sources = 1;
+}
+
+enum MonitorServiceRequest {
+    LOGS_HISTORY = 0;
+    SERVICES_STATUS = 1;
+    FILTER_CONFIG = 2;
+    SETTINGS_CONFIG = 3;
+    STREAM_SOURCES = 4;
+}

@@ -1,0 +1,4 @@
+paths:
+  android-wifi:
+    source: rtsp://192.168.1.2:8080/h264_ulaw.sdp
+    runOnInit: ffmpeg -i rtsp://192.168.1.2:8080/h264_ulaw.sdp -acodec copy -vcodec copy -f segment -segment_time 10 -strftime 1 "data/recordings/android-wifi_%Y-%m-%d_%H-%M-%S.mkv"

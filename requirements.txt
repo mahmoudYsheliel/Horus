@@ -1,0 +1,6 @@
+colorama==0.4.6
+numpy==2.2.4
+protobuf==6.30.2
+PyYAML==6.0.2
+pyzmq==26.3.0
+types-protobuf==5.29.1.20250403

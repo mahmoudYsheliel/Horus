@@ -1,0 +1,23 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+
+  <img id="video" src="http://127.0.0.1:8888/android-wifi/index.m3u8" type="application/x-mpegURL" controls autoplay>
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script>
+    const video = document.getElementById('video');
+    const hls = new Hls();
+    hls.loadSource('http://127.0.0.1:8888/android-wifi/index.m3u8');
+    hls.attachMedia(video);
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,26 @@
+# gaussian_blur median_blur bilateral_filter motion_filter
+'android-wifi/gaussian_blur':
+  filter: gaussian_blur
+  input_src: rtsp://localhost:8554/android-wifi # mediamtx output 
+  enable_recording: false
+  filter_params:
+    kernal_width: 5
+    kernal_height: 5
+    sigma: 0.25
+
+'android-wifi/gaussian_blur/median_blur':
+  filter: median_blur
+  input_src: rtsp://localhost:8554/android-wifi/gaussian_blur # mediamtx output 
+  enable_recording: true
+  filter_params:
+    kernal_size: 5
+
+'android-wifi/gaussian_blur/median_blur/gaussian_blur':
+  filter: gaussian_blur
+  input_src: rtsp://localhost:8554/android-wifi/gaussian_blur/median_blur
+  enable_recording: false
+  filter_params:
+    kernal_width: 3
+    kernal_height: 3
+    sigma: 0.25
+

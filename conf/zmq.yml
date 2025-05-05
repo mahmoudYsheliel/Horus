@@ -1,0 +1,2 @@
+monitor_pull_socket: tcp://127.0.0.1:6000
+monitor_rep_socket: tcp://127.0.0.1:6001
