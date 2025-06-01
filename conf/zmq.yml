@@ -1,2 +1,6 @@
 monitor_pull_socket: tcp://127.0.0.1:6000
 monitor_rep_socket: tcp://127.0.0.1:6001
+
+
+ai_monitor_xsub_socket: tcp://127.0.0.1:7000
+ai_monitor_xpub_socket: tcp://127.0.0.1:7001

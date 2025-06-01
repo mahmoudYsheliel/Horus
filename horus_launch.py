@@ -4,13 +4,15 @@ import yaml
 import subprocess
 import re
 import time
-
+from typing import Literal
 import lib.log as hu_log
 import lib.conf as hu_conf
 from protoc.hu_msgs_pb import (
     LogMsg,
     LogLevel,
 )
+
+Service = Literal['Filter', 'Agent']
 
 
 def __ilog(msg: str):
@@ -56,27 +58,35 @@ def __mmtx_path_params(stream_source: dict, enable_recording=False) -> dict:
     return mmtx_path_params
 
 
-def __mmtx_path_params_filter(filter_out_channel:str,enable_recording = False)->dict:
+def __mmtx_path_params_filter(filter_out_channel: str, enable_recording=False) -> dict:
     mmtx_path_params = {}
     source_link = 'rtsp://localhost:8554/' + filter_out_channel
     if enable_recording:
         mmtx_path_params['runOnInit'] = __ffmpeg_record(source_link, filter_out_channel)
     return mmtx_path_params
 
-def launch_filter(index:int,filter_type: str,params:dict):
+
+def launch_service(index: int, service_file: str, params: dict | None, service_type: Service):
     if not __check_horus_shell():
         __elog('No Horus Shell Found')
         sys.exit(1)
 
     HS_SHELL_ID = f'horus_shell:{index}'
-    __ilog(f'Launching Horus Filter{index}...')
+    __ilog(f'Launching Horus {service_type} {index}...')
     os.system(f"tmux new-window -t {HS_SHELL_ID}")
     params_string = ''
-    for key, value in params.items():
-        params_string = params_string + f' --{key} {value}'
-    run_command = f"cd {os.getcwd()} && source scripts/set_env.bash && python filters/{filter_type}.py {params_string}"
+    if params:
+        for key, value in params.items():
+            if isinstance(value,list):
+                for val in value:
+                    params_string = params_string + f' --{key} {val}'
+            else:
+                params_string = params_string + f' --{key} {value}'
+
+    run_command = f"cd {os.getcwd()} && source scripts/set_env.bash && python {service_file} {params_string}"
     os.system(f"tmux send-keys -t {HS_SHELL_ID} '{run_command}' C-m")
-    __ilog('Launching Horus Filters ...OK')
+    __ilog(f'Launching Horus {service_type} ...OK')
+
 
 def launch_horus_shell():
     if __check_horus_shell():
@@ -105,22 +115,32 @@ def launch_monitor_service():
     __ilog('Launching Horus Monitor Service...OK')
 
 
+def launch_ai_monitor_service(shell_id: int):
+    if not __check_horus_shell():
+        __elog('No Horus Shell Found')
+        sys.exit(1)
+    HS_SHELL_ID = f'horus_shell:{shell_id}'
+    __ilog('Launching Horus AI Monitor Service...')
+    os.system(f"tmux new-window -t {HS_SHELL_ID}")
+    os.system(f"tmux send-keys -t {HS_SHELL_ID} '{__lss('AI_monitor')}' C-m")
+    __ilog('Launching Horus AI Monitor Service...OK')
+
+
 def launch_mediamtx():
     __ilog('Generating MediaMTX YML Config...')
-    #settings = hu_conf.get_settings()
-    #enable_recording: bool = settings['enable_recording']
+    # settings = hu_conf.get_settings()
+    # enable_recording: bool = settings['enable_recording']
     stream_sources = hu_conf.get_stream_sources_conf()
     filters = hu_conf.get_filters_conf()
+    agents = hu_conf.get_agents_conf()
     mediamtx_paths = {}
     for s_src in stream_sources.values():
         enable_recording = s_src['enable_recording']
         mediamtx_paths[s_src['source_name']] = __mmtx_path_params(s_src, enable_recording)
 
     for out_channel, filter_data in filters.items():
-        match = re.search(r":\d+/(.+)", filter_data['input_src'])
-        if match:
-            filter_output_channel = out_channel
-            mediamtx_paths[filter_output_channel] = __mmtx_path_params_filter(filter_output_channel,filter_data['enable_recording'])
+        filter_output_channel = filter_data['camera_name'] + '/' + out_channel
+        mediamtx_paths[filter_output_channel] = __mmtx_path_params_filter(filter_output_channel, filter_data['enable_recording'])
 
     mediamtx_yml = yaml.safe_dump({'paths': mediamtx_paths}, width=1024)
     with open('mediamtx.yml', 'w') as f:
@@ -132,17 +152,40 @@ def launch_mediamtx():
     os.system(f"tmux new-window -t {HS_SHELL_ID}")
     os.system(f"tmux send-keys -t {HS_SHELL_ID} 'cd {os.getcwd()} && ./mediamtx' C-m")
     __ilog('Launching Horus MediaMTX Service...OK')
-    
+
+    ############ filters up ############
     index = 3
     for _, filter_data in filters.items():
-        match = re.search(r":\d+/(.+)", filter_data['input_src'])
-        if match:
-            params = filter_data['filter_params']
-            params['input_stream_source'] = filter_data['input_src']
-            params['output_stream_source'] = filter_data['input_src'] + '/' +filter_data['filter']
-            launch_filter(index,filter_data['filter'],params)
-            index = index + 1
-            time.sleep(5)
+        params = {}
+        params['camera_name'] = filter_data['camera_name'] 
+        params['input_stream_source'] = filter_data['input_src']
+        params['output_stream_source'] = filter_data['output_src'] 
+        params['filter'] = []
+        if len(filter_data['filters_chain']) > 0:
+            for filter in filter_data['filters_chain']:
+                filter_str = str(filter['name'])
+                for filter_conf_key,filter_conf_val in filter['params'].items():
+                    filter_str +=  ' ' + str(filter_conf_key) + '=' + str(filter_conf_val)
+                    
+                params['filter'].append(filter_str)
+    
+        filter_file = f'filters/filter_service.py'
+        launch_service(index, filter_file, params, 'Filter')
+        index = index + 1
+
+    ############ agents up ############
+    launch_ai_monitor_service(index)
+    index += 1
+
+    for channel, agent_data in agents.items():
+        params = agent_data['agent_params']
+        params = {} if not params else params
+        params['input_stream_source'] = agent_data['input_src']
+        params['channel'] = channel
+        agent_path = agent_data['path'] + agent_data['agent']
+        agent_file = f'agents/{agent_path}.py'
+        launch_service(index, agent_file, params,'Agent')
+        index = index + 1
 
 
 if __name__ == '__main__':

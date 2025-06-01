@@ -52,6 +52,14 @@ def __filters():
     filters_list.ParseFromString(packet)
     filters_dict = MessageToDict(filters_list)
     __fmt_json(filters_dict)
+    
+def __agents():
+    monitor_req_socket.send(bytes([MonitorServiceRequest.AGENTS_CONFIG]))
+    packet = monitor_req_socket.recv()
+    agents_list = Agents()
+    agents_list.ParseFromString(packet)
+    agents_dict = MessageToDict(agents_list)
+    __fmt_json(agents_dict)
 
     
 

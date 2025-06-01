@@ -1,8 +1,7 @@
 paths:
   android-wifi:
-    runOnInit: python scripts/ffmpeg_record.py rtsp://admin:5555@192.168.81.98:8080/h264_ulaw.sdp android-wifi
-    source: rtsp://admin:5555@192.168.81.98:8080/h264_ulaw.sdp
-  android-wifi/gaussian_blur: {}
-  android-wifi/gaussian_blur/median_blur:
-    runOnInit: python scripts/ffmpeg_record.py rtsp://localhost:8554/android-wifi/gaussian_blur/median_blur android-wifi/gaussian_blur/median_blur
-  android-wifi/gaussian_blur/median_blur/gaussian_blur: {}
+    runOnInit: python scripts/ffmpeg_record.py rtsp://admin:5555@192.168.165.237:8080/h264_ulaw.sdp android-wifi
+    source: rtsp://admin:5555@192.168.165.237:8080/h264_ulaw.sdp
+  android-wifi/gaussian_median: {}
+  android-wifi/gaussian_resize_crop: {}
+  android-wifi/median_gaussian: {}

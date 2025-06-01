@@ -1,7 +1,7 @@
 //monitor_pull_socket: tcp://127.0.0.1:6000
 //monitor_rep_socket: tcp://127.0.0.1:6001
 
-import { LogMsg, LogLevel, MonitorServiceRequest, ServicesStatusMap, LogMsgList, Filters,StreamSources } from './generated/hu_msgs'
+import { LogMsg, LogLevel, MonitorServiceRequest, ServicesStatusMap, LogMsgList, Filters,StreamSources,AIDetectionAgent,Agents } from './generated/hu_msgs'
 import * as zmq from 'zeromq'
 
 import { BrowserWindow, ipcMain } from 'electron';
@@ -13,6 +13,10 @@ monitor_push.connect('tcp://127.0.0.1:6000')
 const monitor_req = new zmq.Request()
 monitor_req.connect('tcp://127.0.0.1:6001')
 
+const monitor_ai_sub = new zmq.Subscriber()
+monitor_ai_sub.connect('tcp://127.0.0.1:7001')
+monitor_ai_sub.subscribe("")
+
 
 
 const log = new LogMsg();
@@ -21,6 +25,13 @@ log.log_level = LogLevel.INFO;
 log.src = 'zmq_cli';
 log.msg ="ZMQ CLI Test Log Msg";
 
+export async function ai_agent_subscriber(mainWindow: BrowserWindow){
+  for await (const [channel,msg] of monitor_ai_sub){
+    const SSM = AIDetectionAgent.deserializeBinary(msg)
+    const data = {channel:channel.toString(),data: SSM.toObject()}
+    mainWindow.webContents.send('ai_agent',data)
+  }
+}
 export async function send_log() {
   await monitor_push.send(log.serializeBinary())
   return true
@@ -50,7 +61,15 @@ export async function get_filters() {
   
     const SSM = Filters.deserializeBinary(packet[0])
     return SSM.toObject()
-   
+}
+
+
+export async function get_agents() {
+  await monitor_req.send(new Uint8Array([MonitorServiceRequest.AGENTS_CONFIG]))
+  const packet = await monitor_req.receive()
+
+  const SSM = Agents.deserializeBinary(packet[0])
+  return SSM.toObject()
 }
 
 export async function get_stream_sources() {
@@ -88,4 +107,9 @@ export function init_test_zmq(mainWindow: BrowserWindow) {
     const value = await get_stream_sources()
     return value
   })
+  ipcMain.handle('get_agents', async () => {
+    const value = await get_agents()
+    return value
+  })
+  ai_agent_subscriber(mainWindow)
 }

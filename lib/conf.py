@@ -2,13 +2,14 @@ import yaml
 
 
 filters_conf = {}
+agents_conf = {}
 stream_sources_conf = {}
 zmq_conf = {}
 settings = {}
 
 
 def load_conf_files():
-    global filters_conf, stream_sources_conf, zmq_conf, settings
+    global filters_conf, stream_sources_conf, zmq_conf, settings, agents_conf
 
     with open('conf/filters.yml', 'r') as f:
         filters_conf = yaml.safe_load(f.read())
@@ -21,6 +22,8 @@ def load_conf_files():
 
     with open('conf/settings.yml', 'r') as f:
         settings = yaml.safe_load(f.read())
+    with open('conf/agents.yml', 'r') as f:
+        agents_conf = yaml.safe_load(f.read())
 
 
 def get_filters_conf() -> dict:
@@ -37,6 +40,9 @@ def get_zmq_conf() -> dict:
 
 def get_settings() -> dict:
     return settings
+
+def get_agents_conf() -> dict:
+    return agents_conf
 
 
 load_conf_files()

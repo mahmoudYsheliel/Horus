@@ -27,6 +27,7 @@ class MonitorServiceRequest(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     FILTER_CONFIG: _ClassVar[MonitorServiceRequest]
     SETTINGS_CONFIG: _ClassVar[MonitorServiceRequest]
     STREAM_SOURCES: _ClassVar[MonitorServiceRequest]
+    AGENTS_CONFIG: _ClassVar[MonitorServiceRequest]
 DEBUG: LogLevel
 INFO: LogLevel
 WARNING: LogLevel
@@ -39,6 +40,7 @@ SERVICES_STATUS: MonitorServiceRequest
 FILTER_CONFIG: MonitorServiceRequest
 SETTINGS_CONFIG: MonitorServiceRequest
 STREAM_SOURCES: MonitorServiceRequest
+AGENTS_CONFIG: MonitorServiceRequest
 
 class LogMsg(_message.Message):
     __slots__ = ("timestamp", "log_level", "src", "msg")
@@ -71,26 +73,34 @@ class ServicesStatusMap(_message.Message):
     map: _containers.ScalarMap[str, ServiceStatus]
     def __init__(self, map: _Optional[_Mapping[str, ServiceStatus]] = ...) -> None: ...
 
-class Filter(_message.Message):
-    __slots__ = ("filter", "input_src", "output_channel", "enable_recording", "filter_params")
-    class FilterParamsEntry(_message.Message):
+class SingleFilterChain(_message.Message):
+    __slots__ = ("name", "params")
+    class ParamsEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
         value: float
         def __init__(self, key: _Optional[str] = ..., value: _Optional[float] = ...) -> None: ...
-    FILTER_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    PARAMS_FIELD_NUMBER: _ClassVar[int]
+    name: str
+    params: _containers.ScalarMap[str, float]
+    def __init__(self, name: _Optional[str] = ..., params: _Optional[_Mapping[str, float]] = ...) -> None: ...
+
+class Filter(_message.Message):
+    __slots__ = ("camera_name", "input_src", "output_src", "enable_recording", "filters_chain")
+    CAMERA_NAME_FIELD_NUMBER: _ClassVar[int]
     INPUT_SRC_FIELD_NUMBER: _ClassVar[int]
-    OUTPUT_CHANNEL_FIELD_NUMBER: _ClassVar[int]
+    OUTPUT_SRC_FIELD_NUMBER: _ClassVar[int]
     ENABLE_RECORDING_FIELD_NUMBER: _ClassVar[int]
-    FILTER_PARAMS_FIELD_NUMBER: _ClassVar[int]
-    filter: str
+    FILTERS_CHAIN_FIELD_NUMBER: _ClassVar[int]
+    camera_name: str
     input_src: str
-    output_channel: str
+    output_src: str
     enable_recording: bool
-    filter_params: _containers.ScalarMap[str, float]
-    def __init__(self, filter: _Optional[str] = ..., input_src: _Optional[str] = ..., output_channel: _Optional[str] = ..., enable_recording: bool = ..., filter_params: _Optional[_Mapping[str, float]] = ...) -> None: ...
+    filters_chain: _containers.RepeatedCompositeFieldContainer[SingleFilterChain]
+    def __init__(self, camera_name: _Optional[str] = ..., input_src: _Optional[str] = ..., output_src: _Optional[str] = ..., enable_recording: bool = ..., filters_chain: _Optional[_Iterable[_Union[SingleFilterChain, _Mapping]]] = ...) -> None: ...
 
 class Filters(_message.Message):
     __slots__ = ("filters",)
@@ -143,3 +153,69 @@ class StreamSources(_message.Message):
     STREAM_SOURCES_FIELD_NUMBER: _ClassVar[int]
     stream_sources: _containers.MessageMap[str, StreamSource]
     def __init__(self, stream_sources: _Optional[_Mapping[str, StreamSource]] = ...) -> None: ...
+
+class BoundingBox(_message.Message):
+    __slots__ = ("x", "y", "w", "h")
+    X_FIELD_NUMBER: _ClassVar[int]
+    Y_FIELD_NUMBER: _ClassVar[int]
+    W_FIELD_NUMBER: _ClassVar[int]
+    H_FIELD_NUMBER: _ClassVar[int]
+    x: int
+    y: int
+    w: int
+    h: int
+    def __init__(self, x: _Optional[int] = ..., y: _Optional[int] = ..., w: _Optional[int] = ..., h: _Optional[int] = ...) -> None: ...
+
+class DetectionData(_message.Message):
+    __slots__ = ("class_name", "bounding_box", "confidence")
+    CLASS_NAME_FIELD_NUMBER: _ClassVar[int]
+    BOUNDING_BOX_FIELD_NUMBER: _ClassVar[int]
+    CONFIDENCE_FIELD_NUMBER: _ClassVar[int]
+    class_name: str
+    bounding_box: BoundingBox
+    confidence: float
+    def __init__(self, class_name: _Optional[str] = ..., bounding_box: _Optional[_Union[BoundingBox, _Mapping]] = ..., confidence: _Optional[float] = ...) -> None: ...
+
+class AIDetectionAgent(_message.Message):
+    __slots__ = ("model_name", "timestamp", "source_name", "details")
+    MODEL_NAME_FIELD_NUMBER: _ClassVar[int]
+    TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
+    SOURCE_NAME_FIELD_NUMBER: _ClassVar[int]
+    DETAILS_FIELD_NUMBER: _ClassVar[int]
+    model_name: str
+    timestamp: int
+    source_name: str
+    details: _containers.RepeatedCompositeFieldContainer[DetectionData]
+    def __init__(self, model_name: _Optional[str] = ..., timestamp: _Optional[int] = ..., source_name: _Optional[str] = ..., details: _Optional[_Iterable[_Union[DetectionData, _Mapping]]] = ...) -> None: ...
+
+class Agent(_message.Message):
+    __slots__ = ("path", "agent", "input_src", "agent_params")
+    class AgentParamsEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+    PATH_FIELD_NUMBER: _ClassVar[int]
+    AGENT_FIELD_NUMBER: _ClassVar[int]
+    INPUT_SRC_FIELD_NUMBER: _ClassVar[int]
+    AGENT_PARAMS_FIELD_NUMBER: _ClassVar[int]
+    path: str
+    agent: str
+    input_src: str
+    agent_params: _containers.ScalarMap[str, str]
+    def __init__(self, path: _Optional[str] = ..., agent: _Optional[str] = ..., input_src: _Optional[str] = ..., agent_params: _Optional[_Mapping[str, str]] = ...) -> None: ...
+
+class Agents(_message.Message):
+    __slots__ = ("agents",)
+    class AgentsEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: Agent
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[Agent, _Mapping]] = ...) -> None: ...
+    AGENTS_FIELD_NUMBER: _ClassVar[int]
+    agents: _containers.MessageMap[str, Agent]
+    def __init__(self, agents: _Optional[_Mapping[str, Agent]] = ...) -> None: ...

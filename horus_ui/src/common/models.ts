@@ -1,4 +1,4 @@
-export type PanelName = 'settings' | 'none'
+export type PanelName = 'settings' | 'monitor' | 'agent' |  'none'
 export type LogLevel = 'INFO' | 'DEBUG' | 'WARN' | 'ERROR' | '';
 export interface LogMsg {
     datetime?: string;

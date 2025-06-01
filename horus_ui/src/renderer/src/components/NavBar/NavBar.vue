@@ -2,9 +2,12 @@
 
 import { ref, Ref } from 'vue';
 import Settings from '../icons/Settings.vue';
+import Eye from '../icons/Eye.vue';
+import Agent from '../icons/Agent.vue';
 import { post_event } from '@common/mediator';
 import { PanelName } from '@common/models';
 import NavBarIcon from './NavBarIcon.vue';
+
 
 class NavMenuItem {
     label: string;
@@ -24,7 +27,9 @@ class NavMenuItem {
 
 
 const menu_items: NavMenuItem[] = [
-    new NavMenuItem('Configurations', Settings, function (this: NavMenuItem, _event: MouseEvent) { view_panel(this.panel_name) }, 'settings')
+    new NavMenuItem('Configurations', Settings, function (this: NavMenuItem, _event: MouseEvent) { view_panel(this.panel_name) }, 'settings'),
+    new NavMenuItem('Monitor', Eye, function (this: NavMenuItem, _event: MouseEvent) { view_panel(this.panel_name) }, 'monitor'),
+    new NavMenuItem('Agent', Agent, function (this: NavMenuItem, _event: MouseEvent) { view_panel(this.panel_name) }, 'agent'),
 ]
 function view_panel(panel_name: string) {
     post_event('show_panel', { panel_name })

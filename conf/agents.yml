@@ -1,0 +1,13 @@
+# face_detection | expression_detection
+'face_detection_agent':
+  path: cv_face_detection/
+  agent: face_detection
+  input_src: rtsp://localhost:8554/android-wifi # mediamtx output 
+  agent_params: {}
+
+
+'expression_detection_agent':
+  path: cv_expression_detection/
+  agent: expression_detection
+  input_src: rtsp://localhost:8554/android-wifi # mediamtx output 
+  agent_params: {}

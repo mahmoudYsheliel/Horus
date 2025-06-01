@@ -11,6 +11,7 @@ logs_history = LogMsgList()
 services_status_map = ServicesStatusMap()
 filter_list = Filters()
 stream_sources_list = StreamSources()
+agents_list = Agents()
 
 
 def handle_log_msg(log_msg: LogMsg):
@@ -43,13 +44,30 @@ def handle_filters():
     for filter_name, filter in filters.items():
         new_filter = filter_list.filters[filter_name]
 
-        new_filter.filter = filter['filter']
+        new_filter.camera_name = filter['camera_name']
         new_filter.input_src = filter['input_src']
+        new_filter.output_src = filter['output_src']
         new_filter.enable_recording = filter['enable_recording']
-
-        for k, v in filter['filter_params'].items():
-            new_filter.filter_params[k] = v
-
+        if filter['filters_chain']:
+            for single_filter_chain in filter['filters_chain']:
+                new_single_filter_chain = SingleFilterChain()
+                new_single_filter_chain.name = single_filter_chain['name']
+                for k,v in single_filter_chain['params'].items():
+                    new_single_filter_chain.params[k] = v
+                new_filter.filters_chain.append(new_single_filter_chain)
+                
+def handle_agents():
+    agents = hu_conf.get_agents_conf()
+    for agent_name, agent in agents.items():
+        new_agent = agents_list.agents[agent_name]
+        
+        new_agent.agent = agent['agent']
+        new_agent.path = agent['path']
+        new_agent.input_src = agent['input_src']
+        if agent['agent_params']:
+            for k,v in agent['agent_params'].items():
+                new_agent.agent_params[k] = v
+        
 
 def main():
     zmq_conf = hu_conf.get_zmq_conf()
@@ -69,6 +87,7 @@ def main():
     services_status_map.map[SERVICE_NAME] = ServiceStatus.ONLINE
     handle_filters()
     handle_stream_sources()
+    handle_agents()
     while True:
         socks = dict(poller.poll())
 
@@ -92,8 +111,9 @@ def main():
                 monitor_rep_socket.send(filter_list.SerializeToString())
             elif req_code == MonitorServiceRequest.STREAM_SOURCES:
                 monitor_rep_socket.send(stream_sources_list.SerializeToString())
+            elif req_code == MonitorServiceRequest.AGENTS_CONFIG:
+                monitor_rep_socket.send(agents_list.SerializeToString())
 
 
 if __name__ == '__main__':
-    handle_filters()
     main()

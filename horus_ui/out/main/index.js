@@ -37,6 +37,7 @@ var MonitorServiceRequest = /* @__PURE__ */ ((MonitorServiceRequest2) => {
   MonitorServiceRequest2[MonitorServiceRequest2["FILTER_CONFIG"] = 2] = "FILTER_CONFIG";
   MonitorServiceRequest2[MonitorServiceRequest2["SETTINGS_CONFIG"] = 3] = "SETTINGS_CONFIG";
   MonitorServiceRequest2[MonitorServiceRequest2["STREAM_SOURCES"] = 4] = "STREAM_SOURCES";
+  MonitorServiceRequest2[MonitorServiceRequest2["AGENTS_CONFIG"] = 5] = "AGENTS_CONFIG";
   return MonitorServiceRequest2;
 })(MonitorServiceRequest || {});
 class LogMsg extends pb_1__namespace.Message {
@@ -290,35 +291,119 @@ class ServicesStatusMap extends pb_1__namespace.Message {
     return ServicesStatusMap.deserialize(bytes);
   }
 }
-class Filter extends pb_1__namespace.Message {
+class SingleFilterChain extends pb_1__namespace.Message {
   #one_of_decls = [];
   constructor(data) {
     super();
     pb_1__namespace.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
     if (!Array.isArray(data) && typeof data == "object") {
-      if ("filter" in data && data.filter != void 0) {
-        this.filter = data.filter;
+      if ("name" in data && data.name != void 0) {
+        this.name = data.name;
+      }
+      if ("params" in data && data.params != void 0) {
+        this.params = data.params;
+      }
+    }
+    if (!this.params)
+      this.params = /* @__PURE__ */ new Map();
+  }
+  get name() {
+    return pb_1__namespace.Message.getFieldWithDefault(this, 1, "");
+  }
+  set name(value) {
+    pb_1__namespace.Message.setField(this, 1, value);
+  }
+  get params() {
+    return pb_1__namespace.Message.getField(this, 2);
+  }
+  set params(value) {
+    pb_1__namespace.Message.setField(this, 2, value);
+  }
+  static fromObject(data) {
+    const message = new SingleFilterChain({});
+    if (data.name != null) {
+      message.name = data.name;
+    }
+    if (typeof data.params == "object") {
+      message.params = new Map(Object.entries(data.params));
+    }
+    return message;
+  }
+  toObject() {
+    const data = {};
+    if (this.name != null) {
+      data.name = this.name;
+    }
+    if (this.params != null) {
+      data.params = Object.fromEntries(this.params);
+    }
+    return data;
+  }
+  serialize(w) {
+    const writer = w || new pb_1__namespace.BinaryWriter();
+    if (this.name.length)
+      writer.writeString(1, this.name);
+    for (const [key, value] of this.params) {
+      writer.writeMessage(2, this.params, () => {
+        writer.writeString(1, key);
+        writer.writeFloat(2, value);
+      });
+    }
+    if (!w)
+      return writer.getResultBuffer();
+  }
+  static deserialize(bytes) {
+    const reader = bytes instanceof pb_1__namespace.BinaryReader ? bytes : new pb_1__namespace.BinaryReader(bytes), message = new SingleFilterChain();
+    while (reader.nextField()) {
+      if (reader.isEndGroup())
+        break;
+      switch (reader.getFieldNumber()) {
+        case 1:
+          message.name = reader.readString();
+          break;
+        case 2:
+          reader.readMessage(message, () => pb_1__namespace.Map.deserializeBinary(message.params, reader, reader.readString, reader.readFloat));
+          break;
+        default:
+          reader.skipField();
+      }
+    }
+    return message;
+  }
+  serializeBinary() {
+    return this.serialize();
+  }
+  static deserializeBinary(bytes) {
+    return SingleFilterChain.deserialize(bytes);
+  }
+}
+class Filter extends pb_1__namespace.Message {
+  #one_of_decls = [];
+  constructor(data) {
+    super();
+    pb_1__namespace.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [5], this.#one_of_decls);
+    if (!Array.isArray(data) && typeof data == "object") {
+      if ("camera_name" in data && data.camera_name != void 0) {
+        this.camera_name = data.camera_name;
       }
       if ("input_src" in data && data.input_src != void 0) {
         this.input_src = data.input_src;
       }
-      if ("output_channel" in data && data.output_channel != void 0) {
-        this.output_channel = data.output_channel;
+      if ("output_src" in data && data.output_src != void 0) {
+        this.output_src = data.output_src;
       }
       if ("enable_recording" in data && data.enable_recording != void 0) {
         this.enable_recording = data.enable_recording;
       }
-      if ("filter_params" in data && data.filter_params != void 0) {
-        this.filter_params = data.filter_params;
+      if ("filters_chain" in data && data.filters_chain != void 0) {
+        this.filters_chain = data.filters_chain;
       }
     }
-    if (!this.filter_params)
-      this.filter_params = /* @__PURE__ */ new Map();
   }
-  get filter() {
+  get camera_name() {
     return pb_1__namespace.Message.getFieldWithDefault(this, 1, "");
   }
-  set filter(value) {
+  set camera_name(value) {
     pb_1__namespace.Message.setField(this, 1, value);
   }
   get input_src() {
@@ -327,10 +412,10 @@ class Filter extends pb_1__namespace.Message {
   set input_src(value) {
     pb_1__namespace.Message.setField(this, 2, value);
   }
-  get output_channel() {
+  get output_src() {
     return pb_1__namespace.Message.getFieldWithDefault(this, 3, "");
   }
-  set output_channel(value) {
+  set output_src(value) {
     pb_1__namespace.Message.setField(this, 3, value);
   }
   get enable_recording() {
@@ -339,66 +424,62 @@ class Filter extends pb_1__namespace.Message {
   set enable_recording(value) {
     pb_1__namespace.Message.setField(this, 4, value);
   }
-  get filter_params() {
-    return pb_1__namespace.Message.getField(this, 5);
+  get filters_chain() {
+    return pb_1__namespace.Message.getRepeatedWrapperField(this, SingleFilterChain, 5);
   }
-  set filter_params(value) {
-    pb_1__namespace.Message.setField(this, 5, value);
+  set filters_chain(value) {
+    pb_1__namespace.Message.setRepeatedWrapperField(this, 5, value);
   }
   static fromObject(data) {
     const message = new Filter({});
-    if (data.filter != null) {
-      message.filter = data.filter;
+    if (data.camera_name != null) {
+      message.camera_name = data.camera_name;
     }
     if (data.input_src != null) {
       message.input_src = data.input_src;
     }
-    if (data.output_channel != null) {
-      message.output_channel = data.output_channel;
+    if (data.output_src != null) {
+      message.output_src = data.output_src;
     }
     if (data.enable_recording != null) {
       message.enable_recording = data.enable_recording;
     }
-    if (typeof data.filter_params == "object") {
-      message.filter_params = new Map(Object.entries(data.filter_params));
+    if (data.filters_chain != null) {
+      message.filters_chain = data.filters_chain.map((item) => SingleFilterChain.fromObject(item));
     }
     return message;
   }
   toObject() {
     const data = {};
-    if (this.filter != null) {
-      data.filter = this.filter;
+    if (this.camera_name != null) {
+      data.camera_name = this.camera_name;
     }
     if (this.input_src != null) {
       data.input_src = this.input_src;
     }
-    if (this.output_channel != null) {
-      data.output_channel = this.output_channel;
+    if (this.output_src != null) {
+      data.output_src = this.output_src;
     }
     if (this.enable_recording != null) {
       data.enable_recording = this.enable_recording;
     }
-    if (this.filter_params != null) {
-      data.filter_params = Object.fromEntries(this.filter_params);
+    if (this.filters_chain != null) {
+      data.filters_chain = this.filters_chain.map((item) => item.toObject());
     }
     return data;
   }
   serialize(w) {
     const writer = w || new pb_1__namespace.BinaryWriter();
-    if (this.filter.length)
-      writer.writeString(1, this.filter);
+    if (this.camera_name.length)
+      writer.writeString(1, this.camera_name);
     if (this.input_src.length)
       writer.writeString(2, this.input_src);
-    if (this.output_channel.length)
-      writer.writeString(3, this.output_channel);
+    if (this.output_src.length)
+      writer.writeString(3, this.output_src);
     if (this.enable_recording != false)
       writer.writeBool(4, this.enable_recording);
-    for (const [key, value] of this.filter_params) {
-      writer.writeMessage(5, this.filter_params, () => {
-        writer.writeString(1, key);
-        writer.writeFloat(2, value);
-      });
-    }
+    if (this.filters_chain.length)
+      writer.writeRepeatedMessage(5, this.filters_chain, (item) => item.serialize(writer));
     if (!w)
       return writer.getResultBuffer();
   }
@@ -409,19 +490,19 @@ class Filter extends pb_1__namespace.Message {
         break;
       switch (reader.getFieldNumber()) {
         case 1:
-          message.filter = reader.readString();
+          message.camera_name = reader.readString();
           break;
         case 2:
           message.input_src = reader.readString();
           break;
         case 3:
-          message.output_channel = reader.readString();
+          message.output_src = reader.readString();
           break;
         case 4:
           message.enable_recording = reader.readBool();
           break;
         case 5:
-          reader.readMessage(message, () => pb_1__namespace.Map.deserializeBinary(message.filter_params, reader, reader.readString, reader.readFloat));
+          reader.readMessage(message.filters_chain, () => pb_1__namespace.Message.addToRepeatedWrapperField(message, 5, SingleFilterChain.deserialize(reader), SingleFilterChain));
           break;
         default:
           reader.skipField();
@@ -839,15 +920,564 @@ class StreamSources extends pb_1__namespace.Message {
     return StreamSources.deserialize(bytes);
   }
 }
+class BoundingBox extends pb_1__namespace.Message {
+  #one_of_decls = [];
+  constructor(data) {
+    super();
+    pb_1__namespace.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+    if (!Array.isArray(data) && typeof data == "object") {
+      if ("x" in data && data.x != void 0) {
+        this.x = data.x;
+      }
+      if ("y" in data && data.y != void 0) {
+        this.y = data.y;
+      }
+      if ("w" in data && data.w != void 0) {
+        this.w = data.w;
+      }
+      if ("h" in data && data.h != void 0) {
+        this.h = data.h;
+      }
+    }
+  }
+  get x() {
+    return pb_1__namespace.Message.getFieldWithDefault(this, 1, 0);
+  }
+  set x(value) {
+    pb_1__namespace.Message.setField(this, 1, value);
+  }
+  get y() {
+    return pb_1__namespace.Message.getFieldWithDefault(this, 2, 0);
+  }
+  set y(value) {
+    pb_1__namespace.Message.setField(this, 2, value);
+  }
+  get w() {
+    return pb_1__namespace.Message.getFieldWithDefault(this, 3, 0);
+  }
+  set w(value) {
+    pb_1__namespace.Message.setField(this, 3, value);
+  }
+  get h() {
+    return pb_1__namespace.Message.getFieldWithDefault(this, 4, 0);
+  }
+  set h(value) {
+    pb_1__namespace.Message.setField(this, 4, value);
+  }
+  static fromObject(data) {
+    const message = new BoundingBox({});
+    if (data.x != null) {
+      message.x = data.x;
+    }
+    if (data.y != null) {
+      message.y = data.y;
+    }
+    if (data.w != null) {
+      message.w = data.w;
+    }
+    if (data.h != null) {
+      message.h = data.h;
+    }
+    return message;
+  }
+  toObject() {
+    const data = {};
+    if (this.x != null) {
+      data.x = this.x;
+    }
+    if (this.y != null) {
+      data.y = this.y;
+    }
+    if (this.w != null) {
+      data.w = this.w;
+    }
+    if (this.h != null) {
+      data.h = this.h;
+    }
+    return data;
+  }
+  serialize(w) {
+    const writer = w || new pb_1__namespace.BinaryWriter();
+    if (this.x != 0)
+      writer.writeInt32(1, this.x);
+    if (this.y != 0)
+      writer.writeInt32(2, this.y);
+    if (this.w != 0)
+      writer.writeInt32(3, this.w);
+    if (this.h != 0)
+      writer.writeInt32(4, this.h);
+    if (!w)
+      return writer.getResultBuffer();
+  }
+  static deserialize(bytes) {
+    const reader = bytes instanceof pb_1__namespace.BinaryReader ? bytes : new pb_1__namespace.BinaryReader(bytes), message = new BoundingBox();
+    while (reader.nextField()) {
+      if (reader.isEndGroup())
+        break;
+      switch (reader.getFieldNumber()) {
+        case 1:
+          message.x = reader.readInt32();
+          break;
+        case 2:
+          message.y = reader.readInt32();
+          break;
+        case 3:
+          message.w = reader.readInt32();
+          break;
+        case 4:
+          message.h = reader.readInt32();
+          break;
+        default:
+          reader.skipField();
+      }
+    }
+    return message;
+  }
+  serializeBinary() {
+    return this.serialize();
+  }
+  static deserializeBinary(bytes) {
+    return BoundingBox.deserialize(bytes);
+  }
+}
+class DetectionData extends pb_1__namespace.Message {
+  #one_of_decls = [];
+  constructor(data) {
+    super();
+    pb_1__namespace.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+    if (!Array.isArray(data) && typeof data == "object") {
+      if ("class_name" in data && data.class_name != void 0) {
+        this.class_name = data.class_name;
+      }
+      if ("bounding_box" in data && data.bounding_box != void 0) {
+        this.bounding_box = data.bounding_box;
+      }
+      if ("confidence" in data && data.confidence != void 0) {
+        this.confidence = data.confidence;
+      }
+    }
+  }
+  get class_name() {
+    return pb_1__namespace.Message.getFieldWithDefault(this, 1, "");
+  }
+  set class_name(value) {
+    pb_1__namespace.Message.setField(this, 1, value);
+  }
+  get bounding_box() {
+    return pb_1__namespace.Message.getWrapperField(this, BoundingBox, 2);
+  }
+  set bounding_box(value) {
+    pb_1__namespace.Message.setWrapperField(this, 2, value);
+  }
+  get has_bounding_box() {
+    return pb_1__namespace.Message.getField(this, 2) != null;
+  }
+  get confidence() {
+    return pb_1__namespace.Message.getFieldWithDefault(this, 3, 0);
+  }
+  set confidence(value) {
+    pb_1__namespace.Message.setField(this, 3, value);
+  }
+  static fromObject(data) {
+    const message = new DetectionData({});
+    if (data.class_name != null) {
+      message.class_name = data.class_name;
+    }
+    if (data.bounding_box != null) {
+      message.bounding_box = BoundingBox.fromObject(data.bounding_box);
+    }
+    if (data.confidence != null) {
+      message.confidence = data.confidence;
+    }
+    return message;
+  }
+  toObject() {
+    const data = {};
+    if (this.class_name != null) {
+      data.class_name = this.class_name;
+    }
+    if (this.bounding_box != null) {
+      data.bounding_box = this.bounding_box.toObject();
+    }
+    if (this.confidence != null) {
+      data.confidence = this.confidence;
+    }
+    return data;
+  }
+  serialize(w) {
+    const writer = w || new pb_1__namespace.BinaryWriter();
+    if (this.class_name.length)
+      writer.writeString(1, this.class_name);
+    if (this.has_bounding_box)
+      writer.writeMessage(2, this.bounding_box, () => this.bounding_box.serialize(writer));
+    if (this.confidence != 0)
+      writer.writeDouble(3, this.confidence);
+    if (!w)
+      return writer.getResultBuffer();
+  }
+  static deserialize(bytes) {
+    const reader = bytes instanceof pb_1__namespace.BinaryReader ? bytes : new pb_1__namespace.BinaryReader(bytes), message = new DetectionData();
+    while (reader.nextField()) {
+      if (reader.isEndGroup())
+        break;
+      switch (reader.getFieldNumber()) {
+        case 1:
+          message.class_name = reader.readString();
+          break;
+        case 2:
+          reader.readMessage(message.bounding_box, () => message.bounding_box = BoundingBox.deserialize(reader));
+          break;
+        case 3:
+          message.confidence = reader.readDouble();
+          break;
+        default:
+          reader.skipField();
+      }
+    }
+    return message;
+  }
+  serializeBinary() {
+    return this.serialize();
+  }
+  static deserializeBinary(bytes) {
+    return DetectionData.deserialize(bytes);
+  }
+}
+class AIDetectionAgent extends pb_1__namespace.Message {
+  #one_of_decls = [];
+  constructor(data) {
+    super();
+    pb_1__namespace.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [4], this.#one_of_decls);
+    if (!Array.isArray(data) && typeof data == "object") {
+      if ("model_name" in data && data.model_name != void 0) {
+        this.model_name = data.model_name;
+      }
+      if ("timestamp" in data && data.timestamp != void 0) {
+        this.timestamp = data.timestamp;
+      }
+      if ("source_name" in data && data.source_name != void 0) {
+        this.source_name = data.source_name;
+      }
+      if ("details" in data && data.details != void 0) {
+        this.details = data.details;
+      }
+    }
+  }
+  get model_name() {
+    return pb_1__namespace.Message.getFieldWithDefault(this, 1, "");
+  }
+  set model_name(value) {
+    pb_1__namespace.Message.setField(this, 1, value);
+  }
+  get timestamp() {
+    return pb_1__namespace.Message.getFieldWithDefault(this, 2, 0);
+  }
+  set timestamp(value) {
+    pb_1__namespace.Message.setField(this, 2, value);
+  }
+  get source_name() {
+    return pb_1__namespace.Message.getFieldWithDefault(this, 3, "");
+  }
+  set source_name(value) {
+    pb_1__namespace.Message.setField(this, 3, value);
+  }
+  get details() {
+    return pb_1__namespace.Message.getRepeatedWrapperField(this, DetectionData, 4);
+  }
+  set details(value) {
+    pb_1__namespace.Message.setRepeatedWrapperField(this, 4, value);
+  }
+  static fromObject(data) {
+    const message = new AIDetectionAgent({});
+    if (data.model_name != null) {
+      message.model_name = data.model_name;
+    }
+    if (data.timestamp != null) {
+      message.timestamp = data.timestamp;
+    }
+    if (data.source_name != null) {
+      message.source_name = data.source_name;
+    }
+    if (data.details != null) {
+      message.details = data.details.map((item) => DetectionData.fromObject(item));
+    }
+    return message;
+  }
+  toObject() {
+    const data = {};
+    if (this.model_name != null) {
+      data.model_name = this.model_name;
+    }
+    if (this.timestamp != null) {
+      data.timestamp = this.timestamp;
+    }
+    if (this.source_name != null) {
+      data.source_name = this.source_name;
+    }
+    if (this.details != null) {
+      data.details = this.details.map((item) => item.toObject());
+    }
+    return data;
+  }
+  serialize(w) {
+    const writer = w || new pb_1__namespace.BinaryWriter();
+    if (this.model_name.length)
+      writer.writeString(1, this.model_name);
+    if (this.timestamp != 0)
+      writer.writeUint64(2, this.timestamp);
+    if (this.source_name.length)
+      writer.writeString(3, this.source_name);
+    if (this.details.length)
+      writer.writeRepeatedMessage(4, this.details, (item) => item.serialize(writer));
+    if (!w)
+      return writer.getResultBuffer();
+  }
+  static deserialize(bytes) {
+    const reader = bytes instanceof pb_1__namespace.BinaryReader ? bytes : new pb_1__namespace.BinaryReader(bytes), message = new AIDetectionAgent();
+    while (reader.nextField()) {
+      if (reader.isEndGroup())
+        break;
+      switch (reader.getFieldNumber()) {
+        case 1:
+          message.model_name = reader.readString();
+          break;
+        case 2:
+          message.timestamp = reader.readUint64();
+          break;
+        case 3:
+          message.source_name = reader.readString();
+          break;
+        case 4:
+          reader.readMessage(message.details, () => pb_1__namespace.Message.addToRepeatedWrapperField(message, 4, DetectionData.deserialize(reader), DetectionData));
+          break;
+        default:
+          reader.skipField();
+      }
+    }
+    return message;
+  }
+  serializeBinary() {
+    return this.serialize();
+  }
+  static deserializeBinary(bytes) {
+    return AIDetectionAgent.deserialize(bytes);
+  }
+}
+class Agent extends pb_1__namespace.Message {
+  #one_of_decls = [];
+  constructor(data) {
+    super();
+    pb_1__namespace.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+    if (!Array.isArray(data) && typeof data == "object") {
+      if ("path" in data && data.path != void 0) {
+        this.path = data.path;
+      }
+      if ("agent" in data && data.agent != void 0) {
+        this.agent = data.agent;
+      }
+      if ("input_src" in data && data.input_src != void 0) {
+        this.input_src = data.input_src;
+      }
+      if ("agent_params" in data && data.agent_params != void 0) {
+        this.agent_params = data.agent_params;
+      }
+    }
+    if (!this.agent_params)
+      this.agent_params = /* @__PURE__ */ new Map();
+  }
+  get path() {
+    return pb_1__namespace.Message.getFieldWithDefault(this, 1, "");
+  }
+  set path(value) {
+    pb_1__namespace.Message.setField(this, 1, value);
+  }
+  get agent() {
+    return pb_1__namespace.Message.getFieldWithDefault(this, 2, "");
+  }
+  set agent(value) {
+    pb_1__namespace.Message.setField(this, 2, value);
+  }
+  get input_src() {
+    return pb_1__namespace.Message.getFieldWithDefault(this, 3, "");
+  }
+  set input_src(value) {
+    pb_1__namespace.Message.setField(this, 3, value);
+  }
+  get agent_params() {
+    return pb_1__namespace.Message.getField(this, 4);
+  }
+  set agent_params(value) {
+    pb_1__namespace.Message.setField(this, 4, value);
+  }
+  static fromObject(data) {
+    const message = new Agent({});
+    if (data.path != null) {
+      message.path = data.path;
+    }
+    if (data.agent != null) {
+      message.agent = data.agent;
+    }
+    if (data.input_src != null) {
+      message.input_src = data.input_src;
+    }
+    if (typeof data.agent_params == "object") {
+      message.agent_params = new Map(Object.entries(data.agent_params));
+    }
+    return message;
+  }
+  toObject() {
+    const data = {};
+    if (this.path != null) {
+      data.path = this.path;
+    }
+    if (this.agent != null) {
+      data.agent = this.agent;
+    }
+    if (this.input_src != null) {
+      data.input_src = this.input_src;
+    }
+    if (this.agent_params != null) {
+      data.agent_params = Object.fromEntries(this.agent_params);
+    }
+    return data;
+  }
+  serialize(w) {
+    const writer = w || new pb_1__namespace.BinaryWriter();
+    if (this.path.length)
+      writer.writeString(1, this.path);
+    if (this.agent.length)
+      writer.writeString(2, this.agent);
+    if (this.input_src.length)
+      writer.writeString(3, this.input_src);
+    for (const [key, value] of this.agent_params) {
+      writer.writeMessage(4, this.agent_params, () => {
+        writer.writeString(1, key);
+        writer.writeString(2, value);
+      });
+    }
+    if (!w)
+      return writer.getResultBuffer();
+  }
+  static deserialize(bytes) {
+    const reader = bytes instanceof pb_1__namespace.BinaryReader ? bytes : new pb_1__namespace.BinaryReader(bytes), message = new Agent();
+    while (reader.nextField()) {
+      if (reader.isEndGroup())
+        break;
+      switch (reader.getFieldNumber()) {
+        case 1:
+          message.path = reader.readString();
+          break;
+        case 2:
+          message.agent = reader.readString();
+          break;
+        case 3:
+          message.input_src = reader.readString();
+          break;
+        case 4:
+          reader.readMessage(message, () => pb_1__namespace.Map.deserializeBinary(message.agent_params, reader, reader.readString, reader.readString));
+          break;
+        default:
+          reader.skipField();
+      }
+    }
+    return message;
+  }
+  serializeBinary() {
+    return this.serialize();
+  }
+  static deserializeBinary(bytes) {
+    return Agent.deserialize(bytes);
+  }
+}
+class Agents extends pb_1__namespace.Message {
+  #one_of_decls = [];
+  constructor(data) {
+    super();
+    pb_1__namespace.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+    if (!Array.isArray(data) && typeof data == "object") {
+      if ("agents" in data && data.agents != void 0) {
+        this.agents = data.agents;
+      }
+    }
+    if (!this.agents)
+      this.agents = /* @__PURE__ */ new Map();
+  }
+  get agents() {
+    return pb_1__namespace.Message.getField(this, 1);
+  }
+  set agents(value) {
+    pb_1__namespace.Message.setField(this, 1, value);
+  }
+  static fromObject(data) {
+    const message = new Agents({});
+    if (typeof data.agents == "object") {
+      message.agents = new Map(Object.entries(data.agents).map(([key, value]) => [key, Agent.fromObject(value)]));
+    }
+    return message;
+  }
+  toObject() {
+    const data = {};
+    if (this.agents != null) {
+      data.agents = Object.fromEntries(Array.from(this.agents).map(([key, value]) => [key, value.toObject()]));
+    }
+    return data;
+  }
+  serialize(w) {
+    const writer = w || new pb_1__namespace.BinaryWriter();
+    for (const [key, value] of this.agents) {
+      writer.writeMessage(1, this.agents, () => {
+        writer.writeString(1, key);
+        writer.writeMessage(2, value, () => value.serialize(writer));
+      });
+    }
+    if (!w)
+      return writer.getResultBuffer();
+  }
+  static deserialize(bytes) {
+    const reader = bytes instanceof pb_1__namespace.BinaryReader ? bytes : new pb_1__namespace.BinaryReader(bytes), message = new Agents();
+    while (reader.nextField()) {
+      if (reader.isEndGroup())
+        break;
+      switch (reader.getFieldNumber()) {
+        case 1:
+          reader.readMessage(message, () => pb_1__namespace.Map.deserializeBinary(message.agents, reader, reader.readString, () => {
+            let value;
+            reader.readMessage(message, () => value = Agent.deserialize(reader));
+            return value;
+          }));
+          break;
+        default:
+          reader.skipField();
+      }
+    }
+    return message;
+  }
+  serializeBinary() {
+    return this.serialize();
+  }
+  static deserializeBinary(bytes) {
+    return Agents.deserialize(bytes);
+  }
+}
 const monitor_push = new zmq__namespace.Push();
 monitor_push.connect("tcp://127.0.0.1:6000");
 const monitor_req = new zmq__namespace.Request();
 monitor_req.connect("tcp://127.0.0.1:6001");
+const monitor_ai_sub = new zmq__namespace.Subscriber();
+monitor_ai_sub.connect("tcp://127.0.0.1:7001");
+monitor_ai_sub.subscribe("");
 const log = new LogMsg();
 log.timestamp = 1672215379;
 log.log_level = LogLevel.INFO;
 log.src = "zmq_cli";
 log.msg = "ZMQ CLI Test Log Msg";
+async function ai_agent_subscriber(mainWindow) {
+  for await (const [channel, msg] of monitor_ai_sub) {
+    const SSM = AIDetectionAgent.deserializeBinary(msg);
+    const data = { channel: channel.toString(), data: SSM.toObject() };
+    mainWindow.webContents.send("ai_agent", data);
+  }
+}
 async function send_log() {
   await monitor_push.send(log.serializeBinary());
   return true;
@@ -868,6 +1498,12 @@ async function get_filters() {
   await monitor_req.send(new Uint8Array([MonitorServiceRequest.FILTER_CONFIG]));
   const packet = await monitor_req.receive();
   const SSM = Filters.deserializeBinary(packet[0]);
+  return SSM.toObject();
+}
+async function get_agents() {
+  await monitor_req.send(new Uint8Array([MonitorServiceRequest.AGENTS_CONFIG]));
+  const packet = await monitor_req.receive();
+  const SSM = Agents.deserializeBinary(packet[0]);
   return SSM.toObject();
 }
 async function get_stream_sources() {
@@ -897,6 +1533,11 @@ function init_test_zmq(mainWindow) {
     const value = await get_stream_sources();
     return value;
   });
+  electron.ipcMain.handle("get_agents", async () => {
+    const value = await get_agents();
+    return value;
+  });
+  ai_agent_subscriber(mainWindow);
 }
 const BASE_HRES = 1280;
 const BASE_VRES = 720;
@@ -930,7 +1571,7 @@ function createWindow() {
   } else {
     mainWindow.loadFile(path.join(__dirname, "../renderer/index.html"));
   }
-  init_test_zmq();
+  init_test_zmq(mainWindow);
 }
 electron.app.whenReady().then(() => {
   utils.electronApp.setAppUserModelId("labtronic-control-hub-v2.aAbstract");

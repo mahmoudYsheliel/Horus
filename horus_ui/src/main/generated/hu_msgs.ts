@@ -20,7 +20,8 @@ export enum MonitorServiceRequest {
     SERVICES_STATUS = 1,
     FILTER_CONFIG = 2,
     SETTINGS_CONFIG = 3,
-    STREAM_SOURCES = 4
+    STREAM_SOURCES = 4,
+    AGENTS_CONFIG = 5
 }
 export class LogMsg extends pb_1.Message {
     #one_of_decls: number[][] = [];
@@ -302,41 +303,139 @@ export class ServicesStatusMap extends pb_1.Message {
         return ServicesStatusMap.deserialize(bytes);
     }
 }
-export class Filter extends pb_1.Message {
+export class SingleFilterChain extends pb_1.Message {
     #one_of_decls: number[][] = [];
     constructor(data?: any[] | {
-        filter?: string;
-        input_src?: string;
-        output_channel?: string;
-        enable_recording?: boolean;
-        filter_params?: Map<string, number>;
+        name?: string;
+        params?: Map<string, number>;
     }) {
         super();
         pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
         if (!Array.isArray(data) && typeof data == "object") {
-            if ("filter" in data && data.filter != undefined) {
-                this.filter = data.filter;
+            if ("name" in data && data.name != undefined) {
+                this.name = data.name;
+            }
+            if ("params" in data && data.params != undefined) {
+                this.params = data.params;
+            }
+        }
+        if (!this.params)
+            this.params = new Map();
+    }
+    get name() {
+        return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
+    }
+    set name(value: string) {
+        pb_1.Message.setField(this, 1, value);
+    }
+    get params() {
+        return pb_1.Message.getField(this, 2) as any as Map<string, number>;
+    }
+    set params(value: Map<string, number>) {
+        pb_1.Message.setField(this, 2, value as any);
+    }
+    static fromObject(data: {
+        name?: string;
+        params?: {
+            [key: string]: number;
+        };
+    }): SingleFilterChain {
+        const message = new SingleFilterChain({});
+        if (data.name != null) {
+            message.name = data.name;
+        }
+        if (typeof data.params == "object") {
+            message.params = new Map(Object.entries(data.params));
+        }
+        return message;
+    }
+    toObject() {
+        const data: {
+            name?: string;
+            params?: {
+                [key: string]: number;
+            };
+        } = {};
+        if (this.name != null) {
+            data.name = this.name;
+        }
+        if (this.params != null) {
+            data.params = (Object.fromEntries)(this.params);
+        }
+        return data;
+    }
+    serialize(): Uint8Array;
+    serialize(w: pb_1.BinaryWriter): void;
+    serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+        const writer = w || new pb_1.BinaryWriter();
+        if (this.name.length)
+            writer.writeString(1, this.name);
+        for (const [key, value] of this.params) {
+            writer.writeMessage(2, this.params, () => {
+                writer.writeString(1, key);
+                writer.writeFloat(2, value);
+            });
+        }
+        if (!w)
+            return writer.getResultBuffer();
+    }
+    static deserialize(bytes: Uint8Array | pb_1.BinaryReader): SingleFilterChain {
+        const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new SingleFilterChain();
+        while (reader.nextField()) {
+            if (reader.isEndGroup())
+                break;
+            switch (reader.getFieldNumber()) {
+                case 1:
+                    message.name = reader.readString();
+                    break;
+                case 2:
+                    reader.readMessage(message, () => pb_1.Map.deserializeBinary(message.params as any, reader, reader.readString, reader.readFloat));
+                    break;
+                default: reader.skipField();
+            }
+        }
+        return message;
+    }
+    serializeBinary(): Uint8Array {
+        return this.serialize();
+    }
+    static deserializeBinary(bytes: Uint8Array): SingleFilterChain {
+        return SingleFilterChain.deserialize(bytes);
+    }
+}
+export class Filter extends pb_1.Message {
+    #one_of_decls: number[][] = [];
+    constructor(data?: any[] | {
+        camera_name?: string;
+        input_src?: string;
+        output_src?: string;
+        enable_recording?: boolean;
+        filters_chain?: SingleFilterChain[];
+    }) {
+        super();
+        pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [5], this.#one_of_decls);
+        if (!Array.isArray(data) && typeof data == "object") {
+            if ("camera_name" in data && data.camera_name != undefined) {
+                this.camera_name = data.camera_name;
             }
             if ("input_src" in data && data.input_src != undefined) {
                 this.input_src = data.input_src;
             }
-            if ("output_channel" in data && data.output_channel != undefined) {
-                this.output_channel = data.output_channel;
+            if ("output_src" in data && data.output_src != undefined) {
+                this.output_src = data.output_src;
             }
             if ("enable_recording" in data && data.enable_recording != undefined) {
                 this.enable_recording = data.enable_recording;
             }
-            if ("filter_params" in data && data.filter_params != undefined) {
-                this.filter_params = data.filter_params;
+            if ("filters_chain" in data && data.filters_chain != undefined) {
+                this.filters_chain = data.filters_chain;
             }
         }
-        if (!this.filter_params)
-            this.filter_params = new Map();
     }
-    get filter() {
+    get camera_name() {
         return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
     }
-    set filter(value: string) {
+    set camera_name(value: string) {
         pb_1.Message.setField(this, 1, value);
     }
     get input_src() {
@@ -345,10 +444,10 @@ export class Filter extends pb_1.Message {
     set input_src(value: string) {
         pb_1.Message.setField(this, 2, value);
     }
-    get output_channel() {
+    get output_src() {
         return pb_1.Message.getFieldWithDefault(this, 3, "") as string;
     }
-    set output_channel(value: string) {
+    set output_src(value: string) {
         pb_1.Message.setField(this, 3, value);
     }
     get enable_recording() {
@@ -357,63 +456,59 @@ export class Filter extends pb_1.Message {
     set enable_recording(value: boolean) {
         pb_1.Message.setField(this, 4, value);
     }
-    get filter_params() {
-        return pb_1.Message.getField(this, 5) as any as Map<string, number>;
+    get filters_chain() {
+        return pb_1.Message.getRepeatedWrapperField(this, SingleFilterChain, 5) as SingleFilterChain[];
     }
-    set filter_params(value: Map<string, number>) {
-        pb_1.Message.setField(this, 5, value as any);
+    set filters_chain(value: SingleFilterChain[]) {
+        pb_1.Message.setRepeatedWrapperField(this, 5, value);
     }
     static fromObject(data: {
-        filter?: string;
+        camera_name?: string;
         input_src?: string;
-        output_channel?: string;
+        output_src?: string;
         enable_recording?: boolean;
-        filter_params?: {
-            [key: string]: number;
-        };
+        filters_chain?: ReturnType<typeof SingleFilterChain.prototype.toObject>[];
     }): Filter {
         const message = new Filter({});
-        if (data.filter != null) {
-            message.filter = data.filter;
+        if (data.camera_name != null) {
+            message.camera_name = data.camera_name;
         }
         if (data.input_src != null) {
             message.input_src = data.input_src;
         }
-        if (data.output_channel != null) {
-            message.output_channel = data.output_channel;
+        if (data.output_src != null) {
+            message.output_src = data.output_src;
         }
         if (data.enable_recording != null) {
             message.enable_recording = data.enable_recording;
         }
-        if (typeof data.filter_params == "object") {
-            message.filter_params = new Map(Object.entries(data.filter_params));
+        if (data.filters_chain != null) {
+            message.filters_chain = data.filters_chain.map(item => SingleFilterChain.fromObject(item));
         }
         return message;
     }
     toObject() {
         const data: {
-            filter?: string;
+            camera_name?: string;
             input_src?: string;
-            output_channel?: string;
+            output_src?: string;
             enable_recording?: boolean;
-            filter_params?: {
-                [key: string]: number;
-            };
+            filters_chain?: ReturnType<typeof SingleFilterChain.prototype.toObject>[];
         } = {};
-        if (this.filter != null) {
-            data.filter = this.filter;
+        if (this.camera_name != null) {
+            data.camera_name = this.camera_name;
         }
         if (this.input_src != null) {
             data.input_src = this.input_src;
         }
-        if (this.output_channel != null) {
-            data.output_channel = this.output_channel;
+        if (this.output_src != null) {
+            data.output_src = this.output_src;
         }
         if (this.enable_recording != null) {
             data.enable_recording = this.enable_recording;
         }
-        if (this.filter_params != null) {
-            data.filter_params = (Object.fromEntries)(this.filter_params);
+        if (this.filters_chain != null) {
+            data.filters_chain = this.filters_chain.map((item: SingleFilterChain) => item.toObject());
         }
         return data;
     }
@@ -421,20 +516,16 @@ export class Filter extends pb_1.Message {
     serialize(w: pb_1.BinaryWriter): void;
     serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
         const writer = w || new pb_1.BinaryWriter();
-        if (this.filter.length)
-            writer.writeString(1, this.filter);
+        if (this.camera_name.length)
+            writer.writeString(1, this.camera_name);
         if (this.input_src.length)
             writer.writeString(2, this.input_src);
-        if (this.output_channel.length)
-            writer.writeString(3, this.output_channel);
+        if (this.output_src.length)
+            writer.writeString(3, this.output_src);
         if (this.enable_recording != false)
             writer.writeBool(4, this.enable_recording);
-        for (const [key, value] of this.filter_params) {
-            writer.writeMessage(5, this.filter_params, () => {
-                writer.writeString(1, key);
-                writer.writeFloat(2, value);
-            });
-        }
+        if (this.filters_chain.length)
+            writer.writeRepeatedMessage(5, this.filters_chain, (item: SingleFilterChain) => item.serialize(writer));
         if (!w)
             return writer.getResultBuffer();
     }
@@ -445,19 +536,19 @@ export class Filter extends pb_1.Message {
                 break;
             switch (reader.getFieldNumber()) {
                 case 1:
-                    message.filter = reader.readString();
+                    message.camera_name = reader.readString();
                     break;
                 case 2:
                     message.input_src = reader.readString();
                     break;
                 case 3:
-                    message.output_channel = reader.readString();
+                    message.output_src = reader.readString();
                     break;
                 case 4:
                     message.enable_recording = reader.readBool();
                     break;
                 case 5:
-                    reader.readMessage(message, () => pb_1.Map.deserializeBinary(message.filter_params as any, reader, reader.readString, reader.readFloat));
+                    reader.readMessage(message.filters_chain, () => pb_1.Message.addToRepeatedWrapperField(message, 5, SingleFilterChain.deserialize(reader), SingleFilterChain));
                     break;
                 default: reader.skipField();
             }
@@ -929,5 +1020,620 @@ export class StreamSources extends pb_1.Message {
     }
     static deserializeBinary(bytes: Uint8Array): StreamSources {
         return StreamSources.deserialize(bytes);
+    }
+}
+export class BoundingBox extends pb_1.Message {
+    #one_of_decls: number[][] = [];
+    constructor(data?: any[] | {
+        x?: number;
+        y?: number;
+        w?: number;
+        h?: number;
+    }) {
+        super();
+        pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+        if (!Array.isArray(data) && typeof data == "object") {
+            if ("x" in data && data.x != undefined) {
+                this.x = data.x;
+            }
+            if ("y" in data && data.y != undefined) {
+                this.y = data.y;
+            }
+            if ("w" in data && data.w != undefined) {
+                this.w = data.w;
+            }
+            if ("h" in data && data.h != undefined) {
+                this.h = data.h;
+            }
+        }
+    }
+    get x() {
+        return pb_1.Message.getFieldWithDefault(this, 1, 0) as number;
+    }
+    set x(value: number) {
+        pb_1.Message.setField(this, 1, value);
+    }
+    get y() {
+        return pb_1.Message.getFieldWithDefault(this, 2, 0) as number;
+    }
+    set y(value: number) {
+        pb_1.Message.setField(this, 2, value);
+    }
+    get w() {
+        return pb_1.Message.getFieldWithDefault(this, 3, 0) as number;
+    }
+    set w(value: number) {
+        pb_1.Message.setField(this, 3, value);
+    }
+    get h() {
+        return pb_1.Message.getFieldWithDefault(this, 4, 0) as number;
+    }
+    set h(value: number) {
+        pb_1.Message.setField(this, 4, value);
+    }
+    static fromObject(data: {
+        x?: number;
+        y?: number;
+        w?: number;
+        h?: number;
+    }): BoundingBox {
+        const message = new BoundingBox({});
+        if (data.x != null) {
+            message.x = data.x;
+        }
+        if (data.y != null) {
+            message.y = data.y;
+        }
+        if (data.w != null) {
+            message.w = data.w;
+        }
+        if (data.h != null) {
+            message.h = data.h;
+        }
+        return message;
+    }
+    toObject() {
+        const data: {
+            x?: number;
+            y?: number;
+            w?: number;
+            h?: number;
+        } = {};
+        if (this.x != null) {
+            data.x = this.x;
+        }
+        if (this.y != null) {
+            data.y = this.y;
+        }
+        if (this.w != null) {
+            data.w = this.w;
+        }
+        if (this.h != null) {
+            data.h = this.h;
+        }
+        return data;
+    }
+    serialize(): Uint8Array;
+    serialize(w: pb_1.BinaryWriter): void;
+    serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+        const writer = w || new pb_1.BinaryWriter();
+        if (this.x != 0)
+            writer.writeInt32(1, this.x);
+        if (this.y != 0)
+            writer.writeInt32(2, this.y);
+        if (this.w != 0)
+            writer.writeInt32(3, this.w);
+        if (this.h != 0)
+            writer.writeInt32(4, this.h);
+        if (!w)
+            return writer.getResultBuffer();
+    }
+    static deserialize(bytes: Uint8Array | pb_1.BinaryReader): BoundingBox {
+        const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new BoundingBox();
+        while (reader.nextField()) {
+            if (reader.isEndGroup())
+                break;
+            switch (reader.getFieldNumber()) {
+                case 1:
+                    message.x = reader.readInt32();
+                    break;
+                case 2:
+                    message.y = reader.readInt32();
+                    break;
+                case 3:
+                    message.w = reader.readInt32();
+                    break;
+                case 4:
+                    message.h = reader.readInt32();
+                    break;
+                default: reader.skipField();
+            }
+        }
+        return message;
+    }
+    serializeBinary(): Uint8Array {
+        return this.serialize();
+    }
+    static deserializeBinary(bytes: Uint8Array): BoundingBox {
+        return BoundingBox.deserialize(bytes);
+    }
+}
+export class DetectionData extends pb_1.Message {
+    #one_of_decls: number[][] = [];
+    constructor(data?: any[] | {
+        class_name?: string;
+        bounding_box?: BoundingBox;
+        confidence?: number;
+    }) {
+        super();
+        pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+        if (!Array.isArray(data) && typeof data == "object") {
+            if ("class_name" in data && data.class_name != undefined) {
+                this.class_name = data.class_name;
+            }
+            if ("bounding_box" in data && data.bounding_box != undefined) {
+                this.bounding_box = data.bounding_box;
+            }
+            if ("confidence" in data && data.confidence != undefined) {
+                this.confidence = data.confidence;
+            }
+        }
+    }
+    get class_name() {
+        return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
+    }
+    set class_name(value: string) {
+        pb_1.Message.setField(this, 1, value);
+    }
+    get bounding_box() {
+        return pb_1.Message.getWrapperField(this, BoundingBox, 2) as BoundingBox;
+    }
+    set bounding_box(value: BoundingBox) {
+        pb_1.Message.setWrapperField(this, 2, value);
+    }
+    get has_bounding_box() {
+        return pb_1.Message.getField(this, 2) != null;
+    }
+    get confidence() {
+        return pb_1.Message.getFieldWithDefault(this, 3, 0) as number;
+    }
+    set confidence(value: number) {
+        pb_1.Message.setField(this, 3, value);
+    }
+    static fromObject(data: {
+        class_name?: string;
+        bounding_box?: ReturnType<typeof BoundingBox.prototype.toObject>;
+        confidence?: number;
+    }): DetectionData {
+        const message = new DetectionData({});
+        if (data.class_name != null) {
+            message.class_name = data.class_name;
+        }
+        if (data.bounding_box != null) {
+            message.bounding_box = BoundingBox.fromObject(data.bounding_box);
+        }
+        if (data.confidence != null) {
+            message.confidence = data.confidence;
+        }
+        return message;
+    }
+    toObject() {
+        const data: {
+            class_name?: string;
+            bounding_box?: ReturnType<typeof BoundingBox.prototype.toObject>;
+            confidence?: number;
+        } = {};
+        if (this.class_name != null) {
+            data.class_name = this.class_name;
+        }
+        if (this.bounding_box != null) {
+            data.bounding_box = this.bounding_box.toObject();
+        }
+        if (this.confidence != null) {
+            data.confidence = this.confidence;
+        }
+        return data;
+    }
+    serialize(): Uint8Array;
+    serialize(w: pb_1.BinaryWriter): void;
+    serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+        const writer = w || new pb_1.BinaryWriter();
+        if (this.class_name.length)
+            writer.writeString(1, this.class_name);
+        if (this.has_bounding_box)
+            writer.writeMessage(2, this.bounding_box, () => this.bounding_box.serialize(writer));
+        if (this.confidence != 0)
+            writer.writeDouble(3, this.confidence);
+        if (!w)
+            return writer.getResultBuffer();
+    }
+    static deserialize(bytes: Uint8Array | pb_1.BinaryReader): DetectionData {
+        const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new DetectionData();
+        while (reader.nextField()) {
+            if (reader.isEndGroup())
+                break;
+            switch (reader.getFieldNumber()) {
+                case 1:
+                    message.class_name = reader.readString();
+                    break;
+                case 2:
+                    reader.readMessage(message.bounding_box, () => message.bounding_box = BoundingBox.deserialize(reader));
+                    break;
+                case 3:
+                    message.confidence = reader.readDouble();
+                    break;
+                default: reader.skipField();
+            }
+        }
+        return message;
+    }
+    serializeBinary(): Uint8Array {
+        return this.serialize();
+    }
+    static deserializeBinary(bytes: Uint8Array): DetectionData {
+        return DetectionData.deserialize(bytes);
+    }
+}
+export class AIDetectionAgent extends pb_1.Message {
+    #one_of_decls: number[][] = [];
+    constructor(data?: any[] | {
+        model_name?: string;
+        timestamp?: number;
+        source_name?: string;
+        details?: DetectionData[];
+    }) {
+        super();
+        pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [4], this.#one_of_decls);
+        if (!Array.isArray(data) && typeof data == "object") {
+            if ("model_name" in data && data.model_name != undefined) {
+                this.model_name = data.model_name;
+            }
+            if ("timestamp" in data && data.timestamp != undefined) {
+                this.timestamp = data.timestamp;
+            }
+            if ("source_name" in data && data.source_name != undefined) {
+                this.source_name = data.source_name;
+            }
+            if ("details" in data && data.details != undefined) {
+                this.details = data.details;
+            }
+        }
+    }
+    get model_name() {
+        return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
+    }
+    set model_name(value: string) {
+        pb_1.Message.setField(this, 1, value);
+    }
+    get timestamp() {
+        return pb_1.Message.getFieldWithDefault(this, 2, 0) as number;
+    }
+    set timestamp(value: number) {
+        pb_1.Message.setField(this, 2, value);
+    }
+    get source_name() {
+        return pb_1.Message.getFieldWithDefault(this, 3, "") as string;
+    }
+    set source_name(value: string) {
+        pb_1.Message.setField(this, 3, value);
+    }
+    get details() {
+        return pb_1.Message.getRepeatedWrapperField(this, DetectionData, 4) as DetectionData[];
+    }
+    set details(value: DetectionData[]) {
+        pb_1.Message.setRepeatedWrapperField(this, 4, value);
+    }
+    static fromObject(data: {
+        model_name?: string;
+        timestamp?: number;
+        source_name?: string;
+        details?: ReturnType<typeof DetectionData.prototype.toObject>[];
+    }): AIDetectionAgent {
+        const message = new AIDetectionAgent({});
+        if (data.model_name != null) {
+            message.model_name = data.model_name;
+        }
+        if (data.timestamp != null) {
+            message.timestamp = data.timestamp;
+        }
+        if (data.source_name != null) {
+            message.source_name = data.source_name;
+        }
+        if (data.details != null) {
+            message.details = data.details.map(item => DetectionData.fromObject(item));
+        }
+        return message;
+    }
+    toObject() {
+        const data: {
+            model_name?: string;
+            timestamp?: number;
+            source_name?: string;
+            details?: ReturnType<typeof DetectionData.prototype.toObject>[];
+        } = {};
+        if (this.model_name != null) {
+            data.model_name = this.model_name;
+        }
+        if (this.timestamp != null) {
+            data.timestamp = this.timestamp;
+        }
+        if (this.source_name != null) {
+            data.source_name = this.source_name;
+        }
+        if (this.details != null) {
+            data.details = this.details.map((item: DetectionData) => item.toObject());
+        }
+        return data;
+    }
+    serialize(): Uint8Array;
+    serialize(w: pb_1.BinaryWriter): void;
+    serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+        const writer = w || new pb_1.BinaryWriter();
+        if (this.model_name.length)
+            writer.writeString(1, this.model_name);
+        if (this.timestamp != 0)
+            writer.writeUint64(2, this.timestamp);
+        if (this.source_name.length)
+            writer.writeString(3, this.source_name);
+        if (this.details.length)
+            writer.writeRepeatedMessage(4, this.details, (item: DetectionData) => item.serialize(writer));
+        if (!w)
+            return writer.getResultBuffer();
+    }
+    static deserialize(bytes: Uint8Array | pb_1.BinaryReader): AIDetectionAgent {
+        const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new AIDetectionAgent();
+        while (reader.nextField()) {
+            if (reader.isEndGroup())
+                break;
+            switch (reader.getFieldNumber()) {
+                case 1:
+                    message.model_name = reader.readString();
+                    break;
+                case 2:
+                    message.timestamp = reader.readUint64();
+                    break;
+                case 3:
+                    message.source_name = reader.readString();
+                    break;
+                case 4:
+                    reader.readMessage(message.details, () => pb_1.Message.addToRepeatedWrapperField(message, 4, DetectionData.deserialize(reader), DetectionData));
+                    break;
+                default: reader.skipField();
+            }
+        }
+        return message;
+    }
+    serializeBinary(): Uint8Array {
+        return this.serialize();
+    }
+    static deserializeBinary(bytes: Uint8Array): AIDetectionAgent {
+        return AIDetectionAgent.deserialize(bytes);
+    }
+}
+export class Agent extends pb_1.Message {
+    #one_of_decls: number[][] = [];
+    constructor(data?: any[] | {
+        path?: string;
+        agent?: string;
+        input_src?: string;
+        agent_params?: Map<string, string>;
+    }) {
+        super();
+        pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+        if (!Array.isArray(data) && typeof data == "object") {
+            if ("path" in data && data.path != undefined) {
+                this.path = data.path;
+            }
+            if ("agent" in data && data.agent != undefined) {
+                this.agent = data.agent;
+            }
+            if ("input_src" in data && data.input_src != undefined) {
+                this.input_src = data.input_src;
+            }
+            if ("agent_params" in data && data.agent_params != undefined) {
+                this.agent_params = data.agent_params;
+            }
+        }
+        if (!this.agent_params)
+            this.agent_params = new Map();
+    }
+    get path() {
+        return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
+    }
+    set path(value: string) {
+        pb_1.Message.setField(this, 1, value);
+    }
+    get agent() {
+        return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
+    }
+    set agent(value: string) {
+        pb_1.Message.setField(this, 2, value);
+    }
+    get input_src() {
+        return pb_1.Message.getFieldWithDefault(this, 3, "") as string;
+    }
+    set input_src(value: string) {
+        pb_1.Message.setField(this, 3, value);
+    }
+    get agent_params() {
+        return pb_1.Message.getField(this, 4) as any as Map<string, string>;
+    }
+    set agent_params(value: Map<string, string>) {
+        pb_1.Message.setField(this, 4, value as any);
+    }
+    static fromObject(data: {
+        path?: string;
+        agent?: string;
+        input_src?: string;
+        agent_params?: {
+            [key: string]: string;
+        };
+    }): Agent {
+        const message = new Agent({});
+        if (data.path != null) {
+            message.path = data.path;
+        }
+        if (data.agent != null) {
+            message.agent = data.agent;
+        }
+        if (data.input_src != null) {
+            message.input_src = data.input_src;
+        }
+        if (typeof data.agent_params == "object") {
+            message.agent_params = new Map(Object.entries(data.agent_params));
+        }
+        return message;
+    }
+    toObject() {
+        const data: {
+            path?: string;
+            agent?: string;
+            input_src?: string;
+            agent_params?: {
+                [key: string]: string;
+            };
+        } = {};
+        if (this.path != null) {
+            data.path = this.path;
+        }
+        if (this.agent != null) {
+            data.agent = this.agent;
+        }
+        if (this.input_src != null) {
+            data.input_src = this.input_src;
+        }
+        if (this.agent_params != null) {
+            data.agent_params = (Object.fromEntries)(this.agent_params);
+        }
+        return data;
+    }
+    serialize(): Uint8Array;
+    serialize(w: pb_1.BinaryWriter): void;
+    serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+        const writer = w || new pb_1.BinaryWriter();
+        if (this.path.length)
+            writer.writeString(1, this.path);
+        if (this.agent.length)
+            writer.writeString(2, this.agent);
+        if (this.input_src.length)
+            writer.writeString(3, this.input_src);
+        for (const [key, value] of this.agent_params) {
+            writer.writeMessage(4, this.agent_params, () => {
+                writer.writeString(1, key);
+                writer.writeString(2, value);
+            });
+        }
+        if (!w)
+            return writer.getResultBuffer();
+    }
+    static deserialize(bytes: Uint8Array | pb_1.BinaryReader): Agent {
+        const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new Agent();
+        while (reader.nextField()) {
+            if (reader.isEndGroup())
+                break;
+            switch (reader.getFieldNumber()) {
+                case 1:
+                    message.path = reader.readString();
+                    break;
+                case 2:
+                    message.agent = reader.readString();
+                    break;
+                case 3:
+                    message.input_src = reader.readString();
+                    break;
+                case 4:
+                    reader.readMessage(message, () => pb_1.Map.deserializeBinary(message.agent_params as any, reader, reader.readString, reader.readString));
+                    break;
+                default: reader.skipField();
+            }
+        }
+        return message;
+    }
+    serializeBinary(): Uint8Array {
+        return this.serialize();
+    }
+    static deserializeBinary(bytes: Uint8Array): Agent {
+        return Agent.deserialize(bytes);
+    }
+}
+export class Agents extends pb_1.Message {
+    #one_of_decls: number[][] = [];
+    constructor(data?: any[] | {
+        agents?: Map<string, Agent>;
+    }) {
+        super();
+        pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+        if (!Array.isArray(data) && typeof data == "object") {
+            if ("agents" in data && data.agents != undefined) {
+                this.agents = data.agents;
+            }
+        }
+        if (!this.agents)
+            this.agents = new Map();
+    }
+    get agents() {
+        return pb_1.Message.getField(this, 1) as any as Map<string, Agent>;
+    }
+    set agents(value: Map<string, Agent>) {
+        pb_1.Message.setField(this, 1, value as any);
+    }
+    static fromObject(data: {
+        agents?: {
+            [key: string]: ReturnType<typeof Agent.prototype.toObject>;
+        };
+    }): Agents {
+        const message = new Agents({});
+        if (typeof data.agents == "object") {
+            message.agents = new Map(Object.entries(data.agents).map(([key, value]) => [key, Agent.fromObject(value)]));
+        }
+        return message;
+    }
+    toObject() {
+        const data: {
+            agents?: {
+                [key: string]: ReturnType<typeof Agent.prototype.toObject>;
+            };
+        } = {};
+        if (this.agents != null) {
+            data.agents = (Object.fromEntries)((Array.from)(this.agents).map(([key, value]) => [key, value.toObject()]));
+        }
+        return data;
+    }
+    serialize(): Uint8Array;
+    serialize(w: pb_1.BinaryWriter): void;
+    serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+        const writer = w || new pb_1.BinaryWriter();
+        for (const [key, value] of this.agents) {
+            writer.writeMessage(1, this.agents, () => {
+                writer.writeString(1, key);
+                writer.writeMessage(2, value, () => value.serialize(writer));
+            });
+        }
+        if (!w)
+            return writer.getResultBuffer();
+    }
+    static deserialize(bytes: Uint8Array | pb_1.BinaryReader): Agents {
+        const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new Agents();
+        while (reader.nextField()) {
+            if (reader.isEndGroup())
+                break;
+            switch (reader.getFieldNumber()) {
+                case 1:
+                    reader.readMessage(message, () => pb_1.Map.deserializeBinary(message.agents as any, reader, reader.readString, () => {
+                        let value;
+                        reader.readMessage(message, () => value = Agent.deserialize(reader));
+                        return value;
+                    }));
+                    break;
+                default: reader.skipField();
+            }
+        }
+        return message;
+    }
+    serializeBinary(): Uint8Array {
+        return this.serialize();
+    }
+    static deserializeBinary(bytes: Uint8Array): Agents {
+        return Agents.deserialize(bytes);
     }
 }
