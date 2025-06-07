@@ -1,7 +1,7 @@
 //monitor_pull_socket: tcp://127.0.0.1:6000
 //monitor_rep_socket: tcp://127.0.0.1:6001
 
-import { LogMsg, LogLevel, MonitorServiceRequest, ServicesStatusMap, LogMsgList, Filters,StreamSources,AIDetectionAgent,Agents } from './generated/hu_msgs'
+import { LogMsg, LogLevel, MonitorServiceRequest, ServicesStatusMap, LogMsgList, Filters,StreamSources,AIDetectionAgent,Agents, TrackObject } from './generated/hu_msgs'
 import * as zmq from 'zeromq'
 
 import { BrowserWindow, ipcMain } from 'electron';
@@ -16,6 +16,9 @@ monitor_req.connect('tcp://127.0.0.1:6001')
 const monitor_ai_sub = new zmq.Subscriber()
 monitor_ai_sub.connect('tcp://127.0.0.1:7001')
 monitor_ai_sub.subscribe("")
+
+const track_send = new zmq.Push()
+track_send.bind('tcp://127.0.0.1:7501')
 
 
 
@@ -82,6 +85,8 @@ export async function get_stream_sources() {
 }
 
 
+
+
 export function init_test_zmq(mainWindow: BrowserWindow) {
   ipcMain.handle('get_monitor_status', async () => {
     const value = await get_status()
@@ -112,4 +117,23 @@ export function init_test_zmq(mainWindow: BrowserWindow) {
     return value
   })
   ai_agent_subscriber(mainWindow)
+
+
+
+  ipcMain.on('send_track_data',async (_, arg)=>{
+    const data = arg.data as TrackObject
+    const message = new TrackObject()
+    message.image_data = data.image_data
+    message.image_height = data.image_height
+    message.image_width = data.image_width
+    message.object_x = data.object_x
+    message.object_y = data.object_y
+    message.object_w = data.object_w
+    message.object_h = data.object_h
+    message.track_name = data.track_name
+    message.stream_src = data.stream_src
+    await track_send.send(message.serializeBinary())
+  })
+  
+
 }

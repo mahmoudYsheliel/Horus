@@ -1,7 +1,12 @@
 paths:
   android-wifi:
-    runOnInit: python scripts/ffmpeg_record.py rtsp://admin:5555@192.168.165.237:8080/h264_ulaw.sdp android-wifi
-    source: rtsp://admin:5555@192.168.165.237:8080/h264_ulaw.sdp
-  android-wifi/gaussian_median: {}
-  android-wifi/gaussian_resize_crop: {}
-  android-wifi/median_gaussian: {}
+    runOnInit: python scripts/ffmpeg_record.py rtsp://admin:5555@192.168.186.200:8080/h264_ulaw.sdp android-wifi
+    source: rtsp://admin:5555@192.168.186.200:8080/h264_ulaw.sdp
+  android-wifi1:
+    runOnInit: python scripts/ffmpeg_record.py rtsp://admin:5555@192.168.186.200:8080/h264_ulaw.sdp android-wifi1
+    source: rtsp://admin:5555@192.168.186.200:8080/h264_ulaw.sdp
+  android-wifi2:
+    runOnInit: python scripts/ffmpeg_record.py rtsp://admin:5555@192.168.186.200:8080/h264_ulaw.sdp android-wifi2
+    source: rtsp://admin:5555@192.168.186.200:8080/h264_ulaw.sdp
+  cam:
+    source: rtsp://localhost:8554/cam

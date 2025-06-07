@@ -4,6 +4,10 @@ import code
 import readline
 from rlcompleter import Completer
 
+import sys
+import os
+sys.path.append(os.path.abspath('/home/mahmoud/work/horus_v0'))
+
 import lib.log as hu_log
 import lib.conf as hu_conf
 from protoc.hu_msgs_pb import *

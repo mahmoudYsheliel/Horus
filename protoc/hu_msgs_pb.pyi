@@ -219,3 +219,25 @@ class Agents(_message.Message):
     AGENTS_FIELD_NUMBER: _ClassVar[int]
     agents: _containers.MessageMap[str, Agent]
     def __init__(self, agents: _Optional[_Mapping[str, Agent]] = ...) -> None: ...
+
+class TrackObject(_message.Message):
+    __slots__ = ("image_width", "image_height", "image_data", "object_x", "object_y", "object_w", "object_h", "track_name", "stream_src")
+    IMAGE_WIDTH_FIELD_NUMBER: _ClassVar[int]
+    IMAGE_HEIGHT_FIELD_NUMBER: _ClassVar[int]
+    IMAGE_DATA_FIELD_NUMBER: _ClassVar[int]
+    OBJECT_X_FIELD_NUMBER: _ClassVar[int]
+    OBJECT_Y_FIELD_NUMBER: _ClassVar[int]
+    OBJECT_W_FIELD_NUMBER: _ClassVar[int]
+    OBJECT_H_FIELD_NUMBER: _ClassVar[int]
+    TRACK_NAME_FIELD_NUMBER: _ClassVar[int]
+    STREAM_SRC_FIELD_NUMBER: _ClassVar[int]
+    image_width: int
+    image_height: int
+    image_data: _containers.RepeatedScalarFieldContainer[int]
+    object_x: int
+    object_y: int
+    object_w: int
+    object_h: int
+    track_name: str
+    stream_src: str
+    def __init__(self, image_width: _Optional[int] = ..., image_height: _Optional[int] = ..., image_data: _Optional[_Iterable[int]] = ..., object_x: _Optional[int] = ..., object_y: _Optional[int] = ..., object_w: _Optional[int] = ..., object_h: _Optional[int] = ..., track_name: _Optional[str] = ..., stream_src: _Optional[str] = ...) -> None: ...

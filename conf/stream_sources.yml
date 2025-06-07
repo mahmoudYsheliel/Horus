@@ -1,12 +1,48 @@
 '0':
   source_id: 0
   source_type: RTSP
-  source_name: android-wifi
+  source_name: android-wifi1
   enable_recording: true
   connection_params:
-    address: 192.168.165.237:8080
+    address: 192.168.186.200:8080
     username: admin
     password: 5555
     channel: /h264_ulaw.sdp
+
+
+
+'1':
+  source_id: 1
+  source_type: RTSP
+  source_name: android-wifi2
+  enable_recording: true
+  connection_params:
+    address: 192.168.186.200:8080
+    username: admin
+    password: 5555
+    channel: /h264_ulaw.sdp
+
+'2':
+  source_id: 2
+  source_type: RTSP
+  source_name: android-wifi
+  enable_recording: true
+  connection_params:
+    address: 192.168.186.200:8080
+    username: admin
+    password: 5555
+    channel: /h264_ulaw.sdp
+
+
+'3':
+  source_id: 3
+  source_type: RTSP
+  source_name: local
+  enable_recording: false
+  connection_params:
+    address: localhost:8554
+    username: ''
+    password: ''
+    channel: /cam
 
 

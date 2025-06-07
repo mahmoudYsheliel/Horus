@@ -23,15 +23,18 @@ interface Agent {
 }
 
 
-const main_stream_source = ref('http://127.0.0.1:8889/android-wifi/whep')
-const main_video = ref<HTMLCanvasElement>();
+interface VideoStream {
+    name?: string
+    inp_src?: string
+}
+
+
+const main_stream = ref<VideoStream>()
+const main_canvas_element = ref<HTMLCanvasElement>();
 const main_detection_data = ref<DetectionData[]>([])
-const main_agent = ref<string>()
 
-
-const secondery_streams = ref<string[]>([])
-const vid_arr = ref<HTMLCanvasElement[]>([])
-const secondery_detection_data = ref<DetectionData[][]>([])
+const all_streams = ref<VideoStream[]>([])
+const all_canvas_elements = ref<HTMLCanvasElement[]>([])
 
 
 const agents = ref<Record<string, Agent>>({})
@@ -39,24 +42,18 @@ const agents = ref<Record<string, Agent>>({})
 async function get_agents() {
     await electron_renderer_invoke('get_agents', {}).then((arg: any) => {
         agents.value = arg.agents
-        console.log('agents: ',agents.value)
     })
 }
 function get_stream_link(source: string) {
     return `http://127.0.0.1:8889/${source}/whep`
 }
 function get_stream_source(url: string) {
-    console.log('src: ', url.split('8554/')[1])
     return url.split('8554/')[1]
 }
-function get_agent_name(url: string): string | null {
-    const match = url.match(/^rtsp:\/\/127\.0\.0\.1:8889\/(.+?)\/whep$/)
-    return match ? match[1].replaceAll('/', ' > ') : null
-}
 
 
 
-async function assert_stream_to_canvas(stream_link: string, canvas: HTMLCanvasElement | undefined | null, detection_data: Ref<DetectionData[]> | null, wait_time: number = 10) {
+async function assert_stream_to_canvas(stream_link: string | undefined, canvas: HTMLCanvasElement | undefined | null, detection_data: Ref<DetectionData[]> | null, wait_time: number = 1) {
     if (!canvas || !stream_link) return
 
     const ctx = canvas.getContext('2d')
@@ -121,45 +118,37 @@ async function assert_stream_to_canvas(stream_link: string, canvas: HTMLCanvasEl
     drawFrame()
 }
 
-function edit_main_agent(stream: string) {
-    main_agent.value = stream
-    assert_stream_to_canvas(main_agent.value, main_video.value, main_detection_data)
+function edit_main_agent(stream: VideoStream) {
+    main_stream.value = stream
+    assert_stream_to_canvas(main_stream.value?.inp_src, main_canvas_element.value, main_detection_data)
 }
 
-
 onMounted(async () => {
-
     window.electron.ipcRenderer.on('ai_agent', (_, data) => {
-        console.log(data)
-        main_detection_data.value = []
-        for (const detail of data.data.details) {
-            main_detection_data.value?.push(detail)
+        if (data.channel == main_stream.value?.name) {
+            main_detection_data.value = []
+            for (const detail of data.data.details) {
+                main_detection_data.value?.push(detail)
+            }
         }
     })
 
-
     await get_agents()
 
-    const [_, first_val] = Object.entries(agents.value)[0] ?? []
-    const source = get_stream_source(first_val.input_src)
-    main_agent.value = get_stream_link(source)
-
-
-    for (let [_, stream_val] of Object.entries(agents.value)) {
+    for (let [name, stream_val] of Object.entries(agents.value)) {
         const source = get_stream_source(stream_val.input_src)
         const stream_link = get_stream_link(source)
-        secondery_streams.value.push(stream_link)
+        all_streams.value.push({ name: name, inp_src: stream_link })
     }
+    edit_main_agent(all_streams.value[0])
 
-    assert_stream_to_canvas(main_stream_source.value, main_video.value, main_detection_data)
+
     await nextTick()
 
-    secondery_streams.value.forEach((url, i) => {
-        const video = vid_arr.value[i]
-        assert_stream_to_canvas(url, video, null)
+    all_streams.value.forEach((stream, i) => {
+        const video = all_canvas_elements.value[i]
+        assert_stream_to_canvas(stream.inp_src, video, null)
     })
-
-    assert_stream_to_canvas(main_stream_source.value, main_video.value, main_detection_data)
 
 })
 </script>
@@ -168,15 +157,15 @@ onMounted(async () => {
 <template>
     <div id="view_agents_container">
         <div id="view_agents_main_agent">
-            <h2 style="margin: 0;" v-if="main_agent">{{ main_agent }}</h2>
-            <canvas ref="main_video"></canvas>
+            <h2 style="margin: 0;" v-if="main_stream">{{ main_stream.name }}</h2>
+            <canvas ref="main_canvas_element"></canvas>
         </div>
         <div id="view_agents_secondery_agents_container">
-            <div v-for="(agent, index) in secondery_streams" class="view_agents_secondery_agents">
-                <canvas ref="vid_arr" :key="index"></canvas>
-                <p class="view_agents_secondery_agent_title">{{ agent }}</p>
+            <div v-for="(stream, index) in all_streams" class="view_agents_secondery_agents">
+                <canvas ref="all_canvas_elements" :key="index"></canvas>
+                <p class="view_agents_secondery_agent_title">{{ stream.name }}</p>
                 <div class="btn_container">
-                    <Button style="height: 32px; width: 80px;" outlined label="select" @click="edit_main_agent(agent)" />
+                    <Button style="height: 32px; width: 80px;" outlined label="select" @click="edit_main_agent(stream)" />
                 </div>
             </div>
         </div>

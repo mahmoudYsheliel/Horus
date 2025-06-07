@@ -1637,3 +1637,254 @@ export class Agents extends pb_1.Message {
         return Agents.deserialize(bytes);
     }
 }
+export class TrackObject extends pb_1.Message {
+    #one_of_decls: number[][] = [];
+    constructor(data?: any[] | {
+        image_width?: number;
+        image_height?: number;
+        image_data?: number[];
+        object_x?: number;
+        object_y?: number;
+        object_w?: number;
+        object_h?: number;
+        track_name?: string;
+        stream_src?: string;
+    }) {
+        super();
+        pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [3], this.#one_of_decls);
+        if (!Array.isArray(data) && typeof data == "object") {
+            if ("image_width" in data && data.image_width != undefined) {
+                this.image_width = data.image_width;
+            }
+            if ("image_height" in data && data.image_height != undefined) {
+                this.image_height = data.image_height;
+            }
+            if ("image_data" in data && data.image_data != undefined) {
+                this.image_data = data.image_data;
+            }
+            if ("object_x" in data && data.object_x != undefined) {
+                this.object_x = data.object_x;
+            }
+            if ("object_y" in data && data.object_y != undefined) {
+                this.object_y = data.object_y;
+            }
+            if ("object_w" in data && data.object_w != undefined) {
+                this.object_w = data.object_w;
+            }
+            if ("object_h" in data && data.object_h != undefined) {
+                this.object_h = data.object_h;
+            }
+            if ("track_name" in data && data.track_name != undefined) {
+                this.track_name = data.track_name;
+            }
+            if ("stream_src" in data && data.stream_src != undefined) {
+                this.stream_src = data.stream_src;
+            }
+        }
+    }
+    get image_width() {
+        return pb_1.Message.getFieldWithDefault(this, 1, 0) as number;
+    }
+    set image_width(value: number) {
+        pb_1.Message.setField(this, 1, value);
+    }
+    get image_height() {
+        return pb_1.Message.getFieldWithDefault(this, 2, 0) as number;
+    }
+    set image_height(value: number) {
+        pb_1.Message.setField(this, 2, value);
+    }
+    get image_data() {
+        return pb_1.Message.getFieldWithDefault(this, 3, []) as number[];
+    }
+    set image_data(value: number[]) {
+        pb_1.Message.setField(this, 3, value);
+    }
+    get object_x() {
+        return pb_1.Message.getFieldWithDefault(this, 4, 0) as number;
+    }
+    set object_x(value: number) {
+        pb_1.Message.setField(this, 4, value);
+    }
+    get object_y() {
+        return pb_1.Message.getFieldWithDefault(this, 5, 0) as number;
+    }
+    set object_y(value: number) {
+        pb_1.Message.setField(this, 5, value);
+    }
+    get object_w() {
+        return pb_1.Message.getFieldWithDefault(this, 6, 0) as number;
+    }
+    set object_w(value: number) {
+        pb_1.Message.setField(this, 6, value);
+    }
+    get object_h() {
+        return pb_1.Message.getFieldWithDefault(this, 7, 0) as number;
+    }
+    set object_h(value: number) {
+        pb_1.Message.setField(this, 7, value);
+    }
+    get track_name() {
+        return pb_1.Message.getFieldWithDefault(this, 8, "") as string;
+    }
+    set track_name(value: string) {
+        pb_1.Message.setField(this, 8, value);
+    }
+    get stream_src() {
+        return pb_1.Message.getFieldWithDefault(this, 9, "") as string;
+    }
+    set stream_src(value: string) {
+        pb_1.Message.setField(this, 9, value);
+    }
+    static fromObject(data: {
+        image_width?: number;
+        image_height?: number;
+        image_data?: number[];
+        object_x?: number;
+        object_y?: number;
+        object_w?: number;
+        object_h?: number;
+        track_name?: string;
+        stream_src?: string;
+    }): TrackObject {
+        const message = new TrackObject({});
+        if (data.image_width != null) {
+            message.image_width = data.image_width;
+        }
+        if (data.image_height != null) {
+            message.image_height = data.image_height;
+        }
+        if (data.image_data != null) {
+            message.image_data = data.image_data;
+        }
+        if (data.object_x != null) {
+            message.object_x = data.object_x;
+        }
+        if (data.object_y != null) {
+            message.object_y = data.object_y;
+        }
+        if (data.object_w != null) {
+            message.object_w = data.object_w;
+        }
+        if (data.object_h != null) {
+            message.object_h = data.object_h;
+        }
+        if (data.track_name != null) {
+            message.track_name = data.track_name;
+        }
+        if (data.stream_src != null) {
+            message.stream_src = data.stream_src;
+        }
+        return message;
+    }
+    toObject() {
+        const data: {
+            image_width?: number;
+            image_height?: number;
+            image_data?: number[];
+            object_x?: number;
+            object_y?: number;
+            object_w?: number;
+            object_h?: number;
+            track_name?: string;
+            stream_src?: string;
+        } = {};
+        if (this.image_width != null) {
+            data.image_width = this.image_width;
+        }
+        if (this.image_height != null) {
+            data.image_height = this.image_height;
+        }
+        if (this.image_data != null) {
+            data.image_data = this.image_data;
+        }
+        if (this.object_x != null) {
+            data.object_x = this.object_x;
+        }
+        if (this.object_y != null) {
+            data.object_y = this.object_y;
+        }
+        if (this.object_w != null) {
+            data.object_w = this.object_w;
+        }
+        if (this.object_h != null) {
+            data.object_h = this.object_h;
+        }
+        if (this.track_name != null) {
+            data.track_name = this.track_name;
+        }
+        if (this.stream_src != null) {
+            data.stream_src = this.stream_src;
+        }
+        return data;
+    }
+    serialize(): Uint8Array;
+    serialize(w: pb_1.BinaryWriter): void;
+    serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+        const writer = w || new pb_1.BinaryWriter();
+        if (this.image_width != 0)
+            writer.writeUint32(1, this.image_width);
+        if (this.image_height != 0)
+            writer.writeUint32(2, this.image_height);
+        if (this.image_data.length)
+            writer.writePackedUint32(3, this.image_data);
+        if (this.object_x != 0)
+            writer.writeUint32(4, this.object_x);
+        if (this.object_y != 0)
+            writer.writeUint32(5, this.object_y);
+        if (this.object_w != 0)
+            writer.writeUint32(6, this.object_w);
+        if (this.object_h != 0)
+            writer.writeUint32(7, this.object_h);
+        if (this.track_name.length)
+            writer.writeString(8, this.track_name);
+        if (this.stream_src.length)
+            writer.writeString(9, this.stream_src);
+        if (!w)
+            return writer.getResultBuffer();
+    }
+    static deserialize(bytes: Uint8Array | pb_1.BinaryReader): TrackObject {
+        const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new TrackObject();
+        while (reader.nextField()) {
+            if (reader.isEndGroup())
+                break;
+            switch (reader.getFieldNumber()) {
+                case 1:
+                    message.image_width = reader.readUint32();
+                    break;
+                case 2:
+                    message.image_height = reader.readUint32();
+                    break;
+                case 3:
+                    message.image_data = reader.readPackedUint32();
+                    break;
+                case 4:
+                    message.object_x = reader.readUint32();
+                    break;
+                case 5:
+                    message.object_y = reader.readUint32();
+                    break;
+                case 6:
+                    message.object_w = reader.readUint32();
+                    break;
+                case 7:
+                    message.object_h = reader.readUint32();
+                    break;
+                case 8:
+                    message.track_name = reader.readString();
+                    break;
+                case 9:
+                    message.stream_src = reader.readString();
+                    break;
+                default: reader.skipField();
+            }
+        }
+        return message;
+    }
+    serializeBinary(): Uint8Array {
+        return this.serialize();
+    }
+    static deserializeBinary(bytes: Uint8Array): TrackObject {
+        return TrackObject.deserialize(bytes);
+    }
+}

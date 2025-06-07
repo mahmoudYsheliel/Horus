@@ -96,6 +96,21 @@ message Agents {
     map<string,Agent> agents = 1;
 }
 
+
+message TrackObject {
+    uint32 image_width = 1;
+    uint32 image_height = 2;
+    repeated uint32 image_data = 3;
+    uint32 object_x = 4;
+    uint32 object_y = 5;
+    uint32 object_w = 6;
+    uint32 object_h = 7;
+    string track_name = 8;
+    string stream_src = 9;
+    
+}
+
+
 enum MonitorServiceRequest {
     LOGS_HISTORY = 0;
     SERVICES_STATUS = 1;
